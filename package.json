@@ -1,0 +1,17 @@
+{
+  "name": "vibeguard",
+  "version": "1.0.0",
+  "description": "VibeGuard - Security for the AI-Built Software Era",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "scanners/*"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 0",
+    "lint": "echo \"Error: no lint specified\" && exit 0",
+    "typecheck": "echo \"Error: no typecheck specified\" && exit 0",
+    "build": "echo \"Error: no build specified\" && exit 0"
+  }
+}
