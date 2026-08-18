@@ -1,0 +1,76 @@
+{
+  "errors": [],
+  "paths": {
+    "scanned": [
+      "src/index.js"
+    ]
+  },
+  "results": [
+    {
+      "check_id": "javascript.express.security.injection.tainted-sql-string.tainted-sql-string",
+      "end": {
+        "col": 40,
+        "line": 15,
+        "offset": 300
+      },
+      "extra": {
+        "engine_kind": "OSS",
+        "fingerprint": "1234567890abcdef",
+        "is_ignored": false,
+        "lines": "    db.query('SELECT * FROM users WHERE id = ' + req.query.id);",
+        "message": "User data flows into this SQL string. This could lead to SQL injection. Use parameterized queries instead.",
+        "metadata": {
+          "cwe": [
+            "CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"
+          ],
+          "owasp": [
+            "A03:2021 - Injection"
+          ],
+          "category": "security",
+          "confidence": "HIGH",
+          "impact": "HIGH",
+          "likelihood": "HIGH"
+        },
+        "severity": "ERROR"
+      },
+      "path": "src/index.js",
+      "start": {
+        "col": 5,
+        "line": 15,
+        "offset": 265
+      }
+    },
+    {
+      "check_id": "javascript.browser.security.insecure-document-write.insecure-document-write",
+      "end": {
+        "col": 35,
+        "line": 25,
+        "offset": 450
+      },
+      "extra": {
+        "engine_kind": "OSS",
+        "fingerprint": "abcdef1234567890",
+        "is_ignored": false,
+        "lines": "    document.write(userInput);",
+        "message": "Using document.write can lead to Cross-Site Scripting (XSS). Avoid using it.",
+        "metadata": {
+          "cwe": [
+            "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+          ],
+          "category": "security",
+          "confidence": "MEDIUM",
+          "impact": "MEDIUM",
+          "likelihood": "LOW"
+        },
+        "severity": "WARNING"
+      },
+      "path": "src/index.js",
+      "start": {
+        "col": 5,
+        "line": 25,
+        "offset": 420
+      }
+    }
+  ],
+  "version": "1.30.0"
+}
