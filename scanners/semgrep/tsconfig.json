@@ -1,7 +1,6 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
     "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true,
@@ -9,7 +8,8 @@
     "sourceMap": true
   },
   "references": [
-    { "path": "../types" }
+    { "path": "../../packages/types" },
+    { "path": "../../packages/security-engine" }
   ],
   "include": ["src/**/*"]
 }
