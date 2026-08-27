@@ -1,0 +1,66 @@
+{
+  "@programName": "OWASP ZAP",
+  "@version": "2.13.0",
+  "@generated": "Thu, 27 Aug 2026 10:00:00",
+  "site": [
+    {
+      "@name": "http://localhost:8080",
+      "@host": "localhost",
+      "@port": "8080",
+      "@ssl": "false",
+      "alerts": [
+        {
+          "pluginid": "40018",
+          "alertRef": "40018",
+          "alert": "SQL Injection",
+          "name": "SQL Injection",
+          "riskcode": "3",
+          "confidence": "2",
+          "riskdesc": "High (Medium)",
+          "desc": "<p>SQL injection may be possible.</p>",
+          "instances": [
+            {
+              "uri": "http://localhost:8080/api/users",
+              "method": "GET",
+              "param": "id",
+              "attack": "1' OR '1'='1",
+              "evidence": "Syntax error in SQL statement"
+            }
+          ],
+          "count": "1",
+          "solution": "<p>Use parameterized queries.</p>",
+          "otherinfo": "",
+          "reference": "<p>https://owasp.org/www-community/attacks/SQL_Injection</p>",
+          "cweid": "89",
+          "wascid": "19",
+          "sourceid": "1"
+        },
+        {
+          "pluginid": "10020",
+          "alertRef": "10020-1",
+          "alert": "Anti-CSRF Tokens Check",
+          "name": "Anti-CSRF Tokens Check",
+          "riskcode": "2",
+          "confidence": "3",
+          "riskdesc": "Medium (High)",
+          "desc": "<p>A cross-site request forgery is a vulnerability that occurs when a malicious web site, email, blog, instant message, or program causes a user's web browser to perform an unwanted action on a trusted site for which the user is currently authenticated.</p>",
+          "instances": [
+            {
+              "uri": "http://localhost:8080/api/profile/update",
+              "method": "POST",
+              "param": "",
+              "attack": "",
+              "evidence": "<form action=\"/api/profile/update\">"
+            }
+          ],
+          "count": "1",
+          "solution": "<p>Use Anti-CSRF tokens.</p>",
+          "reference": "<p>https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html</p>",
+          "cweid": "352",
+          "wascid": "9",
+          "sourceid": "1"
+        }
+      ]
+    }
+  ]
+}
