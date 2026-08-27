@@ -1,0 +1,87 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "express": {
+      "name": "express",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1085149,
+          "name": "express",
+          "dependency": "express",
+          "title": "Path Traversal in express",
+          "url": "https://github.com/advisories/GHSA-9234-5678",
+          "severity": "high",
+          "cwe": [
+            "CWE-22"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": "<4.19.2"
+        }
+      ],
+      "effects": [],
+      "range": "<4.19.2",
+      "nodes": [
+        "node_modules/express"
+      ],
+      "fixAvailable": {
+        "name": "express",
+        "version": "4.19.2",
+        "isSemVerMajor": false
+      }
+    },
+    "lodash": {
+      "name": "lodash",
+      "severity": "critical",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1012345,
+          "name": "lodash",
+          "dependency": "lodash",
+          "title": "Prototype Pollution in lodash",
+          "url": "https://github.com/advisories/GHSA-1234-abcd",
+          "severity": "critical",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 9.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+          },
+          "range": "<4.17.21"
+        }
+      ],
+      "effects": [
+        "some-other-pkg"
+      ],
+      "range": "<4.17.21",
+      "nodes": [
+        "node_modules/lodash"
+      ],
+      "fixAvailable": true
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 1,
+      "critical": 1,
+      "total": 2
+    },
+    "dependencies": {
+      "prod": 10,
+      "dev": 20,
+      "optional": 0,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 30
+    }
+  }
+}
