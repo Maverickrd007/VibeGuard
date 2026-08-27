@@ -1,0 +1,42 @@
+[
+  {
+    "Description": "Generic API Key",
+    "StartLine": 12,
+    "EndLine": 12,
+    "StartColumn": 25,
+    "EndColumn": 61,
+    "Match": "apiKey = \"AIzaSyBw-x-x-x-x-x-x-x-x\"",
+    "Secret": "AIzaSyBw-x-x-x-x-x-x-x-x",
+    "File": "src/config/keys.js",
+    "SymlinkFile": "",
+    "Commit": "a1b2c3d4e5f6g7h8i9j0",
+    "Entropy": 4.5,
+    "Author": "John Doe",
+    "Email": "john.doe@example.com",
+    "Date": "2023-10-27T10:00:00Z",
+    "Message": "Hardcoded key for testing",
+    "Tags": [],
+    "RuleID": "generic-api-key",
+    "Fingerprint": "src/config/keys.js:generic-api-key:12"
+  },
+  {
+    "Description": "AWS Access Key",
+    "StartLine": 5,
+    "EndLine": 5,
+    "StartColumn": 15,
+    "EndColumn": 35,
+    "Match": "AWS_KEY=AKIAIOSFODNN7EXAMPLE",
+    "Secret": "AKIAIOSFODNN7EXAMPLE",
+    "File": ".env.test",
+    "SymlinkFile": "",
+    "Commit": "00000000000000000000",
+    "Entropy": 3.8,
+    "Author": "",
+    "Email": "",
+    "Date": "",
+    "Message": "",
+    "Tags": ["key", "AWS"],
+    "RuleID": "aws-access-token",
+    "Fingerprint": ".env.test:aws-access-token:5"
+  }
+]
