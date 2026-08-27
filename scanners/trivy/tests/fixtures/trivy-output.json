@@ -1,0 +1,97 @@
+{
+  "SchemaVersion": 2,
+  "ArtifactName": "alpine:3.15",
+  "ArtifactType": "container_image",
+  "Metadata": {
+    "OS": {
+      "Family": "alpine",
+      "Name": "3.15.4"
+    },
+    "ImageID": "sha256:1234567890abcdef",
+    "RepoTags": [
+      "alpine:3.15"
+    ]
+  },
+  "Results": [
+    {
+      "Target": "alpine:3.15 (alpine 3.15.4)",
+      "Class": "os-pkgs",
+      "Type": "alpine",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2022-28391",
+          "PkgName": "busybox",
+          "InstalledVersion": "1.34.1-r4",
+          "FixedVersion": "1.34.1-r5",
+          "Layer": {
+            "DiffID": "sha256:9b18e9b683141f"
+          },
+          "SeveritySource": "nvd",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2022-28391",
+          "Title": "busybox: double-free in the grep applet",
+          "Description": "A double-free in the grep applet can be triggered when a maliciously crafted string is passed...",
+          "Severity": "CRITICAL",
+          "CweIDs": [
+            "CWE-415"
+          ],
+          "CVSS": {
+            "nvd": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+              "V3Score": 9.8
+            }
+          },
+          "References": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2022-28391"
+          ],
+          "PublishedDate": "2022-04-04T15:15:00Z",
+          "LastModifiedDate": "2022-04-12T13:47:00Z"
+        }
+      ]
+    },
+    {
+      "Target": "Dockerfile",
+      "Class": "config",
+      "Type": "dockerfile",
+      "Misconfigurations": [
+        {
+          "Type": "Dockerfile Security Check",
+          "ID": "DS002",
+          "AVDID": "AVD-DS-0002",
+          "Title": "Image user should not be 'root'",
+          "Description": "It is a good practice to run the container as a non-root user, if possible.",
+          "Message": "Specify at least 1 USER command in Dockerfile with non-root user as argument",
+          "Namespace": "builtin.dockerfile.DS002",
+          "Query": "data.builtin.dockerfile.DS002.deny",
+          "Resolution": "Add 'USER <non root user name>' line to the Dockerfile",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/appshield/ds002",
+          "References": [
+            "https://avd.aquasec.com/appshield/ds002"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Dockerfile",
+            "Service": "general",
+            "StartLine": 1,
+            "EndLine": 5,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 1,
+                  "Content": "FROM alpine:3.15",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "FROM alpine:3.15",
+                  "FirstCause": true,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
