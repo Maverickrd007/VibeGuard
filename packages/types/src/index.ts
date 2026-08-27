@@ -81,3 +81,15 @@ export interface ScannerResult {
   startTime: Date;
   endTime: Date;
 }
+
+export interface AIExplanation {
+  id: string;
+  findingId?: string;
+  summary: string;
+  details: string;
+  remediation: string;
+  codeFix?: string;
+  modelUsed: string;
+  createdAt: Date;
+}
+
