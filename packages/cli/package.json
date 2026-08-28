@@ -1,6 +1,6 @@
 {
   "name": "@maverick006/vibeguard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "VibeGuard CLI",
   "main": "dist/index.js",
   "bin": {
@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@maverick006/ai-engine": "*",
+    "@maverick006/security-engine": "*",
+    "@maverick006/scanner-npm-audit": "*",
     "@maverick006/types": "*",
     "chalk": "^4.1.2",
     "commander": "^11.1.0",

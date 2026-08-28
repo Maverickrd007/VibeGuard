@@ -119,7 +119,7 @@ Format your response exactly as the following JSON. Do not include markdown bloc
       findingId: finding.scanId,
       summary: `Automated summary for ${finding.title}`,
       details: finding.description,
-      remediation: 'Please consult the scanner documentation for remediation steps.',
+      remediation: 'No NVIDIA_API_KEY detected. To unlock automatic AI code generation and remediation, please set the NVIDIA_API_KEY environment variable!',
       modelUsed: 'fallback',
       createdAt: new Date()
     };

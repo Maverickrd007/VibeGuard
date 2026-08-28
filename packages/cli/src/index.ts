@@ -25,23 +25,23 @@ program
     
     const spinner = ora('Scanning repository for vulnerabilities...').start();
     
-    // Simulate orchestration of underlying tools since this is the demo CLI
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Initialize the real security orchestrator and npm audit scanner
+    const { Orchestrator } = require('@maverick006/security-engine');
+    const { NpmAuditScanner } = require('@maverick006/scanner-npm-audit');
     
+    const orchestrator = new Orchestrator([new NpmAuditScanner()]);
+    
+    // Run the actual scan on the current directory
+    const scanResult = await orchestrator.runScan({
+      scanId: `scan-${Date.now()}`,
+      repositoryUrl: 'local',
+      repositoryPath: process.cwd(),
+      branch: 'main'
+    });
+
     spinner.succeed('Scans completed via deterministic engines');
 
-    // Generate mock findings that would come from the scanners
-    const findings: NormalizedFinding[] = [
-      {
-        id: 'vg-001',
-        title: 'SQL Injection Vulnerability',
-        description: 'User input is directly concatenated into a SQL query, allowing for injection attacks.',
-        severity: Severity.HIGH,
-        scanner: 'Semgrep',
-        file: 'src/api/users.ts',
-        line: 42
-      }
-    ];
+    const findings = scanResult.findings;
 
     console.log(chalk.bold(`\nFound ${findings.length} vulnerabilities.`));
 
