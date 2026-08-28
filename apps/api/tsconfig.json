@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "esModuleInterop": true
+  },
+  "references": [
+    { "path": "../../packages/types" },
+    { "path": "../../packages/security-engine" }
+  ],
+  "include": ["src/**/*"]
+}
