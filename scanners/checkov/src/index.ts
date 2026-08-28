@@ -1,5 +1,5 @@
-import { SecurityScanner } from '@vibeguard/security-engine';
-import { ScanInput, ScannerResult } from '@vibeguard/types';
+import { SecurityScanner } from '@maverick006/security-engine';
+import { ScanInput, ScannerResult } from '@maverick006/types';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { parseCheckovOutput } from './parser';

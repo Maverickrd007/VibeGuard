@@ -1,7 +1,6 @@
 {
-  "name": "@vibeguard/scanner-npm-audit",
-  "version": "1.0.0",
-  "private": true,
+  "name": "@maverick006/scanner-npm-audit",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -11,8 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vibeguard/types": "*",
-    "@vibeguard/security-engine": "*"
+    "@maverick006/types": "*",
+    "@maverick006/security-engine": "*"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

@@ -1,7 +1,7 @@
 import { parseNpmAuditOutput } from '../src/parser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Severity, Confidence } from '@vibeguard/types';
+import { Severity, Confidence } from '@maverick006/types';
 
 describe('npm audit Parser', () => {
   it('should parse npm audit json output correctly', () => {

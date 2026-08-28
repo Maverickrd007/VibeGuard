@@ -1,5 +1,5 @@
 import { ContextualExplainer } from '../src/explainer';
-import { NormalizedFinding, Severity, Confidence } from '@vibeguard/types';
+import { NormalizedFinding, Severity, Confidence } from '@maverick006/types';
 
 // Mock the GoogleGenerativeAI module
 jest.mock('@google/generative-ai', () => {

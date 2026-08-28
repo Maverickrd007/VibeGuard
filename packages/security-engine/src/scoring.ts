@@ -1,4 +1,4 @@
-import { NormalizedFinding, Severity } from '@vibeguard/types';
+import { NormalizedFinding, Severity } from '@maverick006/types';
 
 export interface ScoreResult {
   score: number;

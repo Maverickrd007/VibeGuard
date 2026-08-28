@@ -1,5 +1,5 @@
-import { NormalizedFinding, AIExplanation } from '@vibeguard/types';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { NormalizedFinding, AIExplanation } from '@maverick006/types';
+import OpenAI from 'openai';
 
 export interface ExplanationOptions {
   apiKey?: string;
@@ -8,16 +8,19 @@ export interface ExplanationOptions {
 }
 
 /**
- * Generates contextual explanations for deterministic security findings.
+ * Generates contextual explanations for deterministic security findings using NVIDIA NIM.
  */
 export class ContextualExplainer {
-  private genAI: GoogleGenerativeAI | null = null;
-  private defaultModel = 'gemini-1.5-pro';
+  private ai: OpenAI | null = null;
+  private defaultModel = 'meta/llama-3.2-11b-vision-instruct'; // Fast, capable NIM model
 
   constructor(apiKey?: string) {
-    const key = apiKey || process.env.GEMINI_API_KEY;
+    const key = apiKey || process.env.NVIDIA_API_KEY;
     if (key) {
-      this.genAI = new GoogleGenerativeAI(key);
+      this.ai = new OpenAI({
+        apiKey: key,
+        baseURL: 'https://integrate.api.nvidia.com/v1',
+      });
     }
   }
 
@@ -25,20 +28,23 @@ export class ContextualExplainer {
    * Generates a contextual explanation and remediation strategy for a given finding.
    */
   async explainFinding(finding: NormalizedFinding, options: ExplanationOptions = {}): Promise<AIExplanation> {
-    if (!this.genAI) {
+    if (!this.ai) {
       // Fallback if no API key is provided
       return this.generateFallbackExplanation(finding);
     }
 
     try {
       const modelName = options.model || this.defaultModel;
-      const model = this.genAI.getGenerativeModel({ model: modelName });
-
       const prompt = this.buildPrompt(finding, options.codeContext);
       
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const completion = await this.ai.chat.completions.create({
+        model: modelName,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2, // Low temp for more deterministic code fixes
+        max_tokens: 1024,
+      });
+
+      const text = completion.choices[0]?.message?.content || "";
 
       return this.parseAIResponse(finding.scanId || 'unknown', text);
     } catch (error: any) {
@@ -113,7 +119,7 @@ Format your response exactly as the following JSON. Do not include markdown bloc
       findingId: finding.scanId,
       summary: `Automated summary for ${finding.title}`,
       details: finding.description,
-      remediation: 'Please consult the scanner documentation for remediation steps.',
+      remediation: 'No NVIDIA_API_KEY detected. To unlock automatic AI code generation and remediation, please set the NVIDIA_API_KEY environment variable!',
       modelUsed: 'fallback',
       createdAt: new Date()
     };

@@ -1,7 +1,7 @@
 import { parseZapOutput } from '../src/parser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Severity, Confidence } from '@vibeguard/types';
+import { Severity, Confidence } from '@maverick006/types';
 
 describe('ZAP Parser', () => {
   it('should parse zap json output correctly', () => {

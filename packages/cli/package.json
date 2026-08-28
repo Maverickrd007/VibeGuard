@@ -1,6 +1,6 @@
 {
-  "name": "@vibeguard/cli",
-  "version": "1.0.0",
+  "name": "@maverick006/vibeguard",
+  "version": "1.0.2",
   "description": "VibeGuard CLI",
   "main": "dist/index.js",
   "bin": {
@@ -12,14 +12,17 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "commander": "^11.1.0",
+    "@maverick006/ai-engine": "*",
+    "@maverick006/security-engine": "*",
+    "@maverick006/scanner-npm-audit": "*",
+    "@maverick006/types": "*",
     "chalk": "^4.1.2",
-    "ora": "^5.4.1",
-    "@vibeguard/ai-engine": "*",
-    "@vibeguard/types": "*"
+    "commander": "^11.1.0",
+    "dotenv": "^17.4.2",
+    "ora": "^5.4.1"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
   }
 }

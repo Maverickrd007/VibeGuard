@@ -1,6 +1,6 @@
 import { Orchestrator } from '../src/orchestrator';
 import { SecurityScanner } from '../src/scanner';
-import { ScanInput, ScannerResult, Severity, NormalizedFinding } from '@vibeguard/types';
+import { ScanInput, ScannerResult, Severity, NormalizedFinding } from '@maverick006/types';
 
 class MockScanner implements SecurityScanner {
   public name: string;

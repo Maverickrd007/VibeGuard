@@ -1,7 +1,6 @@
 {
-  "name": "@vibeguard/security-engine",
-  "version": "1.0.0",
-  "private": true,
+  "name": "@maverick006/security-engine",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -11,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vibeguard/types": "*"
+    "@maverick006/types": "*"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
