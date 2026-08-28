@@ -1,4 +1,4 @@
-import { NormalizedFinding, Severity, Confidence } from '@vibeguard/types';
+import { NormalizedFinding, Severity, Confidence } from '@maverick006/types';
 
 export function parseCheckovOutput(scanId: string, output: string): NormalizedFinding[] {
   try {

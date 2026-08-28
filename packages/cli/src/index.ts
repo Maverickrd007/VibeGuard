@@ -3,8 +3,8 @@ import 'dotenv/config';
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { ContextualExplainer } from '@vibeguard/ai-engine';
-import { NormalizedFinding, Severity } from '@vibeguard/types';
+import { ContextualExplainer } from '@maverick006/ai-engine';
+import { NormalizedFinding, Severity } from '@maverick006/types';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 

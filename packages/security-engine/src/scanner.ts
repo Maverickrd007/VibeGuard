@@ -1,4 +1,4 @@
-import { ScanInput, ScannerResult } from '@vibeguard/types';
+import { ScanInput, ScannerResult } from '@maverick006/types';
 
 /**
  * Base interface that all VibeGuard scanners must implement.

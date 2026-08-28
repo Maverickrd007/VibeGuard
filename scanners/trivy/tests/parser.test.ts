@@ -1,7 +1,7 @@
 import { parseTrivyOutput } from '../src/parser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Severity, Confidence } from '@vibeguard/types';
+import { Severity, Confidence } from '@maverick006/types';
 
 describe('Trivy Parser', () => {
   it('should parse trivy json output correctly', () => {

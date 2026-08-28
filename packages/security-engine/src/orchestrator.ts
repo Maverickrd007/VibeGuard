@@ -1,4 +1,4 @@
-import { NormalizedFinding, ScanInput, ScannerResult } from '@vibeguard/types';
+import { NormalizedFinding, ScanInput, ScannerResult } from '@maverick006/types';
 import { SecurityScanner } from './scanner';
 
 /**

@@ -1,4 +1,4 @@
-import { NormalizedFinding, AIExplanation } from '@vibeguard/types';
+import { NormalizedFinding, AIExplanation } from '@maverick006/types';
 import OpenAI from 'openai';
 
 export interface ExplanationOptions {

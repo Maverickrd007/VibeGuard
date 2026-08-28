@@ -1,5 +1,5 @@
 {
-  "name": "@vibeguard/scanner-zap",
+  "name": "@maverick006/scanner-zap",
   "version": "1.0.0",
   "private": true,
   "main": "dist/index.js",
@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vibeguard/types": "*",
-    "@vibeguard/security-engine": "*"
+    "@maverick006/types": "*",
+    "@maverick006/security-engine": "*"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

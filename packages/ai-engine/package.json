@@ -1,5 +1,5 @@
 {
-  "name": "@vibeguard/ai-engine",
+  "name": "@maverick006/ai-engine",
   "version": "1.0.0",
   "private": true,
   "main": "dist/index.js",
@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vibeguard/types": "*",
+    "@maverick006/types": "*",
     "openai": "^7.8.0"
   },
   "devDependencies": {

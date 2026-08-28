@@ -1,5 +1,5 @@
 import { calculateScore } from '../src/scoring';
-import { NormalizedFinding, Severity } from '@vibeguard/types';
+import { NormalizedFinding, Severity } from '@maverick006/types';
 
 describe('Deterministic Scoring Engine', () => {
   
