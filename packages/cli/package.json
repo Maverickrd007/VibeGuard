@@ -1,5 +1,5 @@
 {
-  "name": "vibeguard",
+  "name": "@maverick006/vibeguard",
   "version": "1.0.0",
   "description": "VibeGuard CLI",
   "main": "dist/index.js",
