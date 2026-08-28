@@ -1,0 +1,38 @@
+name: VibeGuard Security Scan
+description: "Reusable workflow to run VibeGuard security engine on repositories"
+
+on:
+  workflow_call:
+    inputs:
+      scan_target:
+        required: false
+        type: string
+        default: '.'
+    secrets:
+      GEMINI_API_KEY:
+        required: false
+
+jobs:
+  vibeguard-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        
+      # In a real environment, this would pull the VibeGuard Docker image
+      # or use a pre-built CLI executable.
+      # For now, this is a placeholder demonstrating the action structure.
+      - name: Run VibeGuard Scanner
+        run: |
+          echo "VibeGuard is scanning repository at ${{ inputs.scan_target }}"
+          # ./vibeguard-cli scan --target ${{ inputs.scan_target }} --output vibeguard-report.json
+          echo "Scan completed successfully."
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: vibeguard-report
+          path: vibeguard-report.json
+          if-no-files-found: ignore

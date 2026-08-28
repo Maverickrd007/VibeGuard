@@ -1,0 +1,32 @@
+[
+  {
+    "Profile": "default",
+    "AccountId": "123456789012",
+    "Provider": "aws",
+    "Region": "us-east-1",
+    "CheckID": "iam_user_console_access_mfa_enabled",
+    "CheckTitle": "Ensure MFA is enabled for all IAM users that have a console password",
+    "CheckType": [
+      "Software and Configuration Checks/Industry and IT Standards/CIS Amazon Web Services Foundations Benchmark v1.4.0"
+    ],
+    "ServiceName": "iam",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "User test-user has Console Password enabled but MFA disabled.",
+    "Severity": "high",
+    "ResourceId": "test-user",
+    "ResourceArn": "arn:aws:iam::123456789012:user/test-user",
+    "ResourceType": "AwsIamUser",
+    "ResourceDetails": "",
+    "ResourceTags": {},
+    "Description": "Ensure MFA is enabled for all IAM users that have a console password",
+    "Risk": "Without MFA, only a password is required to gain access to the console.",
+    "RelatedUrl": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html",
+    "Remediation": {
+      "Recommendation": {
+        "Text": "Enable MFA for the user.",
+        "Url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html"
+      }
+    }
+  }
+]
