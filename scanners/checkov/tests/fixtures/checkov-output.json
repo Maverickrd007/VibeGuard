@@ -1,0 +1,37 @@
+{
+  "results": {
+    "failed_checks": [
+      {
+        "check_id": "CKV_AWS_20",
+        "bc_check_id": "BC_AWS_S3_1",
+        "check_name": "Ensure S3 bucket has an ACL defined which allows public read access",
+        "check_result": {
+          "result": "FAILED",
+          "evaluated_keys": [
+            "acl"
+          ]
+        },
+        "file_path": "/main.tf",
+        "file_abs_path": "/path/to/repo/main.tf",
+        "repo_file_path": "/main.tf",
+        "file_line_range": [
+          10,
+          15
+        ],
+        "resource": "aws_s3_bucket.public_bucket",
+        "evaluations": null,
+        "check_class": "checkov.terraform.checks.resource.aws.S3PublicACL",
+        "severity": "HIGH",
+        "description": "Ensure S3 bucket has an ACL defined which allows public read access"
+      }
+    ]
+  },
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "skipped": 0,
+    "parsing_errors": 0,
+    "resource_count": 6,
+    "checkov_version": "2.0.0"
+  }
+}
