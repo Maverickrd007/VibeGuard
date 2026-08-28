@@ -1,0 +1,25 @@
+{
+  "name": "@vibeguard/cli",
+  "version": "1.0.0",
+  "description": "VibeGuard CLI",
+  "main": "dist/index.js",
+  "bin": {
+    "vibeguard": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "@vibeguard/ai-engine": "*",
+    "@vibeguard/types": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
