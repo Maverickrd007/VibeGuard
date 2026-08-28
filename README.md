@@ -1,28 +1,40 @@
 # VibeGuard
 
-**Security for the AI-Built Software Era**
+VibeGuard is a deterministic DevSecOps orchestration engine designed for the AI-built software era.
 
-VibeGuard is a professional DevSecOps security platform designed to identify, analyze, prioritize, explain, and help remediate security vulnerabilities in applications created using AI coding assistants and "vibe coding" workflows.
+## Features
+- **7 Modular Scanners**: SAST, DAST, SCA, Secrets, Containers, and CSPM.
+- **Deterministic Math**: A mathematically pure A-F scoring algorithm.
+- **AI Remediation**: No hallucinations. Just context-aware code fixes powered by Gemini.
 
-## Mission
-To bridge the gap between rapidly generated AI code and the need for deterministic, robust security analysis. VibeGuard provides an extensible framework that runs deterministic security scanners and utilizes AI contextually to explain and assist in remediation—without treating AI as the authoritative source of truth.
-
-## Features (Planned)
-- Static Application Security Testing (SAST)
-- Secret Detection
-- Dependency Vulnerability Scanning
-- Container Image Scanning
-- Infrastructure as Code (IaC) Scanning
-- Deterministic Security Scoring
-- CI/CD Integration & Security Gates
-- Vibe-Code Research Mode for comparative analysis
-
-## Architecture
-VibeGuard is structured as a monorepo containing:
-- `apps/`: Web frontend and API backend
-- `packages/`: Shared types, core security engine, and configuration
-- `scanners/`: Pluggable adapters for deterministic scanners (e.g., Semgrep, Gitleaks, Trivy)
-- `infrastructure/`: Docker and Terraform deployments
+## Workspaces
+- `apps/web`: React Frontend (Vite + Tailwind v4 + Shadcn)
+- `apps/api`: Express Backend + Prisma SQLite
+- `packages/cli`: Command-Line Interface (`@vibeguard/cli`)
+- `packages/ai-engine`: Contextual Explainer utilizing Gemini (`@vibeguard/ai-engine`)
+- `packages/types`: Shared Typescript types
+- `scanners/*`: Deterministic adapter wrappers for open source scanners
 
 ## Getting Started
-(Documentation in progress as the project foundation is being built)
+Ensure you have `GEMINI_API_KEY` set in your environment.
+
+### Run Locally
+```bash
+npm install
+
+# Start API
+npm run dev --workspace=apps/api
+
+# Start Web Dashboard
+npm run dev --workspace=apps/web
+```
+
+### Docker
+```bash
+docker-compose up --build
+```
+
+### Try the CLI
+```bash
+node packages/cli/dist/index.js scan --fix
+```
