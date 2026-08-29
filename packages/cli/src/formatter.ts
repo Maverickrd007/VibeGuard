@@ -13,6 +13,31 @@ export interface ScanStats {
   riskLevel: 'LOW RISK' | 'MEDIUM RISK' | 'HIGH RISK' | 'CRITICAL RISK';
 }
 
+function stripAnsi(str: string): string {
+  return str.replace(/\u001b\[[0-9;]*m/g, '');
+}
+
+function visibleWidth(str: string): number {
+  const plain = stripAnsi(str);
+  let width = 0;
+  for (const char of plain) {
+    const code = char.codePointAt(0) || 0;
+    // Emojis and certain symbols take 2 terminal columns
+    if (code > 0x1F000 || (code >= 0x2600 && code <= 0x27BF)) {
+      width += 2;
+    } else {
+      width += 1;
+    }
+  }
+  return width;
+}
+
+function padVisible(str: string, targetWidth: number): string {
+  const current = visibleWidth(str);
+  const diff = Math.max(0, targetWidth - current);
+  return str + ' '.repeat(diff);
+}
+
 export function getGitInfo(cwd: string = process.cwd()) {
   let name = path.basename(cwd);
   let branch = 'main';
@@ -127,21 +152,34 @@ export function renderDashboard(options: {
   console.log('\n');
   
   // Print Top Row: Clock aligned right
-  console.log(' '.repeat(65) + cyan.bold(timeStr));
+  console.log(' '.repeat(58) + cyan.bold(timeStr));
 
-  // Header Row with Logo and Overall Risk Score Box
-  const headerLines = [
-    `${cyan(shield[0])}  ${cyan.bold(title[0])}     ${darkBorder('┌───────────────────────────────────────┐')}`,
-    `${cyan(shield[1])}  ${cyan.bold(title[1])}     ${darkBorder('│')} ${cyan('OVERALL RISK SCORE')}                  ${darkBorder('│')}`,
-    `${cyan(shield[2])}  ${cyan.bold(title[2])}     ${darkBorder('│')}                       ${red('CRITICAL')}     ${String(stats.critical).padStart(2, ' ')} ${darkBorder('│')}`,
-    `${cyan(shield[3])}  ${cyan.bold(title[3])}     ${darkBorder('│')}  ${scoreColor.bold(String(stats.score))} ${gray('/100')}              ${orange('HIGH')}         ${String(stats.high).padStart(2, ' ')} ${darkBorder('│')}`,
-    `${cyan(shield[4])}  ${cyan.bold(title[4])}     ${darkBorder('│')}                       ${yellow('MEDIUM')}      ${String(stats.medium).padStart(2, ' ')} ${darkBorder('│')}`,
-    `${cyan(shield[5])}  ${gray('AI-Powered DevSecOps Orchestrator')}              ${darkBorder('│')}  ${riskColor.bold(stats.riskLevel.padEnd(13, ' '))}        ${cyan('LOW')}         ${String(stats.low).padStart(2, ' ')} ${darkBorder('│')}`,
-    `                 ${cyan('Scanning. Analyzing. Protecting.')}                ${darkBorder('└───────────────────────────────────────┘')}`
+  // Top Left Box lines (ASCII)
+  const leftHeader = [
+    `${cyan(shield[0])}  ${cyan.bold(title[0])}`,
+    `${cyan(shield[1])}  ${cyan.bold(title[1])}`,
+    `${cyan(shield[2])}  ${cyan.bold(title[2])}`,
+    `${cyan(shield[3])}  ${cyan.bold(title[3])}`,
+    `${cyan(shield[4])}  ${cyan.bold(title[4])}`,
+    `${cyan(shield[5])}  ${gray('AI-Powered DevSecOps Orchestrator')}`,
+    `                 ${cyan('Scanning. Analyzing. Protecting.')}`
   ];
 
-  for (const line of headerLines) {
-    console.log(line);
+  // Top Right Risk Box lines
+  const rightBox = [
+    `${darkBorder('┌───────────────────────────────────────┐')}`,
+    `${darkBorder('│')} ${cyan('OVERALL RISK SCORE')}                  ${darkBorder('│')}`,
+    `${darkBorder('│')}                       ${red('CRITICAL')}     ${String(stats.critical).padStart(2, ' ')} ${darkBorder('│')}`,
+    `${darkBorder('│')}  ${scoreColor.bold(String(stats.score))} ${gray('/100')}              ${orange('HIGH')}         ${String(stats.high).padStart(2, ' ')} ${darkBorder('│')}`,
+    `${darkBorder('│')}                       ${yellow('MEDIUM')}      ${String(stats.medium).padStart(2, ' ')} ${darkBorder('│')}`,
+    `${darkBorder('│')}  ${riskColor.bold(stats.riskLevel.padEnd(13, ' '))}        ${cyan('LOW')}         ${String(stats.low).padStart(2, ' ')} ${darkBorder('│')}`,
+    `${darkBorder('└───────────────────────────────────────┘')}`
+  ];
+
+  for (let i = 0; i < leftHeader.length; i++) {
+    const l = padVisible(leftHeader[i], 66);
+    const r = rightBox[i] || '';
+    console.log(`${l}${r}`);
   }
   console.log('');
 
@@ -164,7 +202,7 @@ export function renderDashboard(options: {
 
   // Table of findings (top 10)
   const topFindings = findings.slice(0, 10);
-  const tableHeader = `${dimGray('ID'.padEnd(12))} ${dimGray('SEVERITY'.padEnd(10))} ${dimGray('TITLE'.padEnd(28))} ${dimGray('FILE:LINE')}`;
+  const tableHeader = `${dimGray(padVisible('ID', 12))} ${dimGray(padVisible('SEVERITY', 10))} ${dimGray(padVisible('TITLE', 28))} ${dimGray('FILE:LINE')}`;
   
   const findingRows: string[] = [tableHeader];
 
@@ -179,21 +217,24 @@ export function renderDashboard(options: {
       else if (sev === 'HIGH') sevFormatted = orange.bold('HIGH     ');
       else if (sev === 'MEDIUM') sevFormatted = yellow('MEDIUM   ');
 
-      const title = (f.title || 'Security Finding').length > 26 
-        ? (f.title || '').slice(0, 24) + '..' 
-        : (f.title || '').padEnd(27, ' ');
+      const rawTitle = f.title || 'Security Finding';
+      const titleTruncated = rawTitle.length > 25 ? rawTitle.slice(0, 23) + '..' : rawTitle;
+      const titleFormatted = padVisible(white(titleTruncated), 28);
 
       const fileLine = `${f.file || 'unknown'}:${f.line || 1}`;
-      findingRows.push(`${cyan(id.padEnd(12))} ${sevFormatted} ${white(title)} ${dimGray(fileLine)}`);
+      const idFormatted = padVisible(cyan(id), 12);
+      findingRows.push(`${idFormatted} ${sevFormatted} ${titleFormatted} ${dimGray(fileLine)}`);
     }
   }
 
-  // Print Section Headers
-  console.log(`\n${cyan('▶ SCANNER PIPELINE')}                         ${cyan('▶ TOP FINDINGS')}`);
+  // Print Section Headers with ANSI-safe padding
+  const headerCol1 = padVisible(cyan('▶ SCANNER PIPELINE'), 36);
+  const headerCol2 = cyan('▶ TOP FINDINGS');
+  console.log(`\n${headerCol1}  ${headerCol2}`);
   
   const maxRows = Math.max(pipelineRows.length, findingRows.length);
   for (let i = 0; i < maxRows; i++) {
-    const left = (pipelineRows[i] || '').padEnd(38, ' ');
+    const left = padVisible(pipelineRows[i] || '', 36);
     const right = findingRows[i] || '';
     console.log(`${left}  ${right}`);
   }
@@ -216,10 +257,8 @@ export function renderDashboard(options: {
       else if (d.trim().startsWith('#')) styled = dimGray(d);
       else styled = white(d);
       
-      // Calculate visible length without ANSI codes for proper border padding
-      const plain = d.replace(/\u001b\[[0-9;]*m/g, '');
-      const padLen = Math.max(0, 58 - plain.length);
-      console.log(`${darkBorder('│')} ${styled}${' '.repeat(padLen)} ${darkBorder('│')}`);
+      const paddedLine = padVisible(styled, 58);
+      console.log(`${darkBorder('│')} ${paddedLine} ${darkBorder('│')}`);
     }
     console.log(darkBorder('└────────────────────────────────────────────────────────────┘'));
 
@@ -229,9 +268,9 @@ export function renderDashboard(options: {
   // Summary Bar (bottom capsule)
   console.log(`\n${cyan('▶ SUMMARY')}`);
   const summaryText = `🛡️   Scan completed in ${duration}   │   ${stats.total} findings   │   6 passed`;
-  const barTop = `┌${'─'.repeat(summaryText.length - 2)}┐`;
+  const barTop = `┌${'─'.repeat(visibleWidth(summaryText) + 4)}┐`;
   const barMid = `│  ${summaryText}  │`;
-  const barBot = `└${'─'.repeat(summaryText.length - 2)}┘`;
+  const barBot = `└${'─'.repeat(visibleWidth(summaryText) + 4)}┘`;
   console.log(cyan(barTop));
   console.log(cyan(barMid));
   console.log(cyan(barBot));

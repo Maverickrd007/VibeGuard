@@ -1,6 +1,6 @@
 {
   "name": "@maverick006/vibeguard",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "description": "VibeGuard CLI",
   "main": "dist/index.js",
   "bin": {
