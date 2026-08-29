@@ -22,6 +22,7 @@ function visibleWidth(str: string): number {
   let width = 0;
   for (const char of plain) {
     const code = char.codePointAt(0) || 0;
+    if (code === 0xFE0F || code === 0xFE0E) continue; // ignore variation selectors
     // Emojis and certain symbols take 2 terminal columns
     if (code > 0x1F000 || (code >= 0x2600 && code <= 0x27BF)) {
       width += 2;
@@ -152,43 +153,37 @@ export function renderDashboard(options: {
   console.log('\n');
   
   // Print Top Row: Clock aligned right
-  console.log(' '.repeat(58) + cyan.bold(timeStr));
+  console.log(' '.repeat(65) + cyan.bold(timeStr));
 
-  // Top Left Box lines (ASCII)
-  const leftHeader = [
-    `${cyan(shield[0])}  ${cyan.bold(title[0])}`,
-    `${cyan(shield[1])}  ${cyan.bold(title[1])}`,
-    `${cyan(shield[2])}  ${cyan.bold(title[2])}`,
-    `${cyan(shield[3])}  ${cyan.bold(title[3])}`,
-    `${cyan(shield[4])}  ${cyan.bold(title[4])}`,
-    `${cyan(shield[5])}  ${gray('AI-Powered DevSecOps Orchestrator')}`,
-    `                 ${cyan('Scanning. Analyzing. Protecting.')}`
-  ];
+  // 1. Header (Shield + VIBEGUARD)
+  console.log(`${cyan(shield[0])}  ${cyan.bold(title[0])}`);
+  console.log(`${cyan(shield[1])}  ${cyan.bold(title[1])}`);
+  console.log(`${cyan(shield[2])}  ${cyan.bold(title[2])}`);
+  console.log(`${cyan(shield[3])}  ${cyan.bold(title[3])}`);
+  console.log(`${cyan(shield[4])}  ${cyan.bold(title[4])}`);
+  console.log(`${cyan(shield[5])}  ${gray('AI-Powered DevSecOps Orchestrator')}`);
+  console.log(`                 ${cyan('Scanning. Analyzing. Protecting.')}\n`);
 
-  // Top Right Risk Box lines
-  const rightBox = [
-    `${darkBorder('┌───────────────────────────────────────┐')}`,
-    `${darkBorder('│')} ${cyan('OVERALL RISK SCORE')}                  ${darkBorder('│')}`,
-    `${darkBorder('│')}                       ${red('CRITICAL')}     ${String(stats.critical).padStart(2, ' ')} ${darkBorder('│')}`,
-    `${darkBorder('│')}  ${scoreColor.bold(String(stats.score))} ${gray('/100')}              ${orange('HIGH')}         ${String(stats.high).padStart(2, ' ')} ${darkBorder('│')}`,
-    `${darkBorder('│')}                       ${yellow('MEDIUM')}      ${String(stats.medium).padStart(2, ' ')} ${darkBorder('│')}`,
-    `${darkBorder('│')}  ${riskColor.bold(stats.riskLevel.padEnd(13, ' '))}        ${cyan('LOW')}         ${String(stats.low).padStart(2, ' ')} ${darkBorder('│')}`,
-    `${darkBorder('└───────────────────────────────────────┘')}`
-  ];
+  // 2. Risk Score Box (Placed cleanly BELOW VIBEGUARD Header)
+  const boxWidth = 74;
+  console.log(darkBorder(`┌${'─'.repeat(boxWidth)}┐`));
+  console.log(`${darkBorder('│')}  ${cyan.bold('OVERALL RISK SCORE')}${' '.repeat(boxWidth - 20)}${darkBorder('│')}`);
+  console.log(`${darkBorder('│')}${' '.repeat(boxWidth)}${darkBorder('│')}`);
+  
+  const scoreLine1 = `   ${scoreColor.bold(String(stats.score))} ${gray('/100')}            ${red('CRITICAL')}     ${String(stats.critical).padEnd(2, ' ')}          ${orange('HIGH')}         ${String(stats.high).padEnd(2, ' ')}`;
+  const scoreLine2 = `   ${riskColor.bold(stats.riskLevel.padEnd(13, ' '))}      ${yellow('MEDIUM')}       ${String(stats.medium).padEnd(2, ' ')}          ${cyan('LOW')}          ${String(stats.low).padEnd(2, ' ')}`;
 
-  for (let i = 0; i < leftHeader.length; i++) {
-    const l = padVisible(leftHeader[i], 66);
-    const r = rightBox[i] || '';
-    console.log(`${l}${r}`);
-  }
+  console.log(`${darkBorder('│')}${padVisible(scoreLine1, boxWidth)}${darkBorder('│')}`);
+  console.log(`${darkBorder('│')}${padVisible(scoreLine2, boxWidth)}${darkBorder('│')}`);
+  console.log(darkBorder(`└${'─'.repeat(boxWidth)}┘`));
   console.log('');
 
-  // 3-Column / Multi-panel Grid
+  // 3. Multi-panel Grid (Pipeline & Findings)
   const pipelineRows = [
-    `${gray('</>')}  SAST (Semgrep)           ${green('✓ OK')}`,
+    `</>  SAST (Semgrep)           ${green('✓ OK')}`,
     `📦   Dependency Check (Trivy) ${green('✓ OK')}`,
     `🔑   Secrets Scan (Gitleaks)  ${green('✓ OK')}`,
-    `☁️   IaC Scan (Checkov)       ${green('✓ OK')}`,
+    `🔒   IaC Scan (Checkov)       ${green('✓ OK')}`,
     `🐳   Container Scan (Trivy)   ${green('✓ OK')}`,
     `📑   Code Quality (ESLint)    ${green('✓ OK')}`,
     ``,
@@ -202,7 +197,7 @@ export function renderDashboard(options: {
 
   // Table of findings (top 10)
   const topFindings = findings.slice(0, 10);
-  const tableHeader = `${dimGray(padVisible('ID', 12))} ${dimGray(padVisible('SEVERITY', 10))} ${dimGray(padVisible('TITLE', 28))} ${dimGray('FILE:LINE')}`;
+  const tableHeader = `${dimGray(padVisible('ID', 13))} ${dimGray(padVisible('SEVERITY', 10))} ${dimGray(padVisible('TITLE', 28))} ${dimGray('FILE:LINE')}`;
   
   const findingRows: string[] = [tableHeader];
 
@@ -218,11 +213,11 @@ export function renderDashboard(options: {
       else if (sev === 'MEDIUM') sevFormatted = yellow('MEDIUM   ');
 
       const rawTitle = f.title || 'Security Finding';
-      const titleTruncated = rawTitle.length > 25 ? rawTitle.slice(0, 23) + '..' : rawTitle;
+      const titleTruncated = rawTitle.length > 26 ? rawTitle.slice(0, 24) + '..' : rawTitle;
       const titleFormatted = padVisible(white(titleTruncated), 28);
 
       const fileLine = `${f.file || 'unknown'}:${f.line || 1}`;
-      const idFormatted = padVisible(cyan(id), 12);
+      const idFormatted = padVisible(cyan(id), 13);
       findingRows.push(`${idFormatted} ${sevFormatted} ${titleFormatted} ${dimGray(fileLine)}`);
     }
   }
@@ -230,7 +225,7 @@ export function renderDashboard(options: {
   // Print Section Headers with ANSI-safe padding
   const headerCol1 = padVisible(cyan('▶ SCANNER PIPELINE'), 36);
   const headerCol2 = cyan('▶ TOP FINDINGS');
-  console.log(`\n${headerCol1}  ${headerCol2}`);
+  console.log(`${headerCol1}  ${headerCol2}`);
   
   const maxRows = Math.max(pipelineRows.length, findingRows.length);
   for (let i = 0; i < maxRows; i++) {
@@ -239,7 +234,7 @@ export function renderDashboard(options: {
     console.log(`${left}  ${right}`);
   }
 
-  // AI Remediation Section
+  // 4. AI Remediation Section
   if (remediation) {
     console.log(`\n${cyan('▶ AI REMEDIATION (VG-AI)')}\n`);
     console.log(`${cyan('Finding:')} ${red.bold(remediation.findingId)}\n`);
@@ -265,7 +260,7 @@ export function renderDashboard(options: {
     console.log(`\n${cyan('Confidence:')} ${green.bold(remediation.confidence + '%')}`);
   }
 
-  // Summary Bar (bottom capsule)
+  // 5. Summary Bar (bottom capsule)
   console.log(`\n${cyan('▶ SUMMARY')}`);
   const summaryText = `🛡️   Scan completed in ${duration}   │   ${stats.total} findings   │   6 passed`;
   const barTop = `┌${'─'.repeat(visibleWidth(summaryText) + 4)}┐`;
