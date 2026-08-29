@@ -1,5 +1,5 @@
-import Component from '@/components/ui/saa-s-template';
+import GlobeScrollDemo from '@/components/ui/landing-page';
 
 export function Landing() {
-  return <Component />;
+  return <GlobeScrollDemo />;
 }

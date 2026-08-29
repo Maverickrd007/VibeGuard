@@ -1,7 +1,26 @@
 @import "tailwindcss";
 
+@theme {
+  --animate-fadeOut: fadeOutLabel 2s ease-out forwards;
+}
+
+@keyframes fadeOutLabel {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(0.5rem) scale(0.95);
+  }
+}
+
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-[#07080C] text-white;
   }
 }
