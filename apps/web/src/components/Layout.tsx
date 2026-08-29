@@ -22,25 +22,27 @@ export function Layout({ children }: LayoutProps) {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-[#07080C] text-white font-sans selection:bg-cyan-500 selection:text-black">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col hidden md:flex">
-        <NavLink to="/" className="h-16 flex items-center px-6 font-bold text-xl tracking-wider border-b border-slate-800 hover:text-cyan-400 transition-colors">
-          VIBE<span className="text-blue-500">GUARD</span>
+      <aside className="w-64 bg-[#0B0D14] border-r border-gray-800/70 text-white flex flex-col hidden md:flex">
+        <NavLink to="/" className="h-16 flex items-center px-6 font-bold text-xl tracking-wider border-b border-gray-800/70 hover:text-cyan-400 transition-colors">
+          <span className="text-cyan-400 mr-2 text-xl">🛡️</span> VIBE<span className="text-cyan-400">GUARD</span>
         </NavLink>
-        <nav className="flex-1 overflow-y-auto py-4">
-          <ul className="space-y-1 px-3">
+        <nav className="flex-1 overflow-y-auto py-5">
+          <ul className="space-y-1.5 px-3">
             {navItems.map((item) => (
               <li key={item.name}>
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                      isActive ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    `flex items-center px-3.5 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      isActive
+                        ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)] font-semibold'
+                        : 'text-gray-400 hover:bg-gray-800/50 hover:text-white'
                     }`
                   }
                 >
-                  <item.icon className="mr-3 h-5 w-5" />
+                  <item.icon className="mr-3 h-4.5 w-4.5" />
                   {item.name}
                 </NavLink>
               </li>
@@ -50,19 +52,27 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#07080C]">
         {/* Topbar */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-          <h2 className="text-lg font-semibold text-gray-800">Dashboard</h2>
+        <header className="h-16 bg-[#0B0D14]/80 backdrop-blur-md border-b border-gray-800/70 flex items-center justify-between px-8">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-white tracking-wide">Security Dashboard</h2>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              Live Monitoring
+            </span>
+          </div>
           <div className="flex items-center space-x-4">
-            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+            <NavLink to="/" className="text-xs text-gray-400 hover:text-white transition-colors">
+              ← Landing Page
+            </NavLink>
+            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-black font-bold text-xs shadow-[0_0_10px_rgba(6,182,212,0.3)]">
               VG
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-8 bg-[#07080C]">
           {children}
         </main>
       </div>
