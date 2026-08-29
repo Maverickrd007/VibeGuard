@@ -8,7 +8,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const navItems = [
-    { name: 'Overview', path: '/', icon: LayoutDashboard },
+    { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Repositories', path: '/repositories', icon: FolderGit2 },
     { name: 'Scans', path: '/scans', icon: Activity },
     { name: 'Findings', path: '/findings', icon: ShieldAlert },
@@ -25,9 +25,9 @@ export function Layout({ children }: LayoutProps) {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className="w-64 bg-slate-900 text-white flex flex-col hidden md:flex">
-        <div className="h-16 flex items-center px-6 font-bold text-xl tracking-wider border-b border-slate-800">
+        <NavLink to="/" className="h-16 flex items-center px-6 font-bold text-xl tracking-wider border-b border-slate-800 hover:text-cyan-400 transition-colors">
           VIBE<span className="text-blue-500">GUARD</span>
-        </div>
+        </NavLink>
         <nav className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-1 px-3">
             {navItems.map((item) => (
