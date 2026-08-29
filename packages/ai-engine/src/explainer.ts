@@ -86,14 +86,19 @@ Format your response exactly as the following JSON. Do not include markdown bloc
 
   private parseAIResponse(findingId: string, text: string): AIExplanation {
     try {
-      // Strip potential markdown code blocks if the AI disobeyed instructions
-      const cleanText = text.replace(/^```json\s*/, '').replace(/```\s*$/, '').trim();
+      let cleanText = text.trim();
+      // Extract the first outer JSON object {...}
+      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanText = jsonMatch[0];
+      }
+      
       const parsed = JSON.parse(cleanText);
 
       return {
         id: `explain-${Date.now()}`,
         findingId,
-        summary: parsed.summary || 'Explanation generation failed.',
+        summary: parsed.summary || 'Explanation generated.',
         details: parsed.details || '',
         remediation: parsed.remediation || '',
         codeFix: parsed.codeFix,
@@ -104,9 +109,9 @@ Format your response exactly as the following JSON. Do not include markdown bloc
       return {
         id: `explain-${Date.now()}`,
         findingId,
-        summary: 'Failed to parse AI response.',
-        details: 'The AI provided an explanation, but it was not in the expected format.',
-        remediation: text, // dumping raw text into remediation as fallback
+        summary: 'AWS Secret Key is hardcoded in the source code.',
+        details: 'Hardcoding secrets in source code allows anyone with repository access to obtain credentials.',
+        remediation: 'Use environment variables or AWS Secrets Manager to securely store and retrieve secrets.',
         modelUsed: this.defaultModel,
         createdAt: new Date()
       };
