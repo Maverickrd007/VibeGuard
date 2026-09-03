@@ -9,7 +9,7 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=production
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
 
   web:
     build:

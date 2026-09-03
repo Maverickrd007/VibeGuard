@@ -8,47 +8,88 @@
 
 > **VibeGuard is a cloud-native DevSecOps security platform that orchestrates deterministic security scanners, enforces security policies in CI/CD, provides AI-assisted remediation, and centralizes security telemetry across repositories.**
 
-## 🏗️ Architecture (3-Part Distributed System)
+## Architecture (3-Part Distributed System)
 
-VibeGuard is built as a highly scalable monorepo (`npm workspaces`, `turborepo`) consisting of three core components:
+VibeGuard is built as a highly scalable monorepo (`npm workspaces`) consisting of three core components:
 
 ### 1. The CLI (`@maverick006/vibeguard`)
 - **Role:** The execution engine.
-- **How it works:** A developer runs `vibeguard scan .` locally or inside a GitHub Actions CI/CD pipeline. The CLI spins up underlying open-source security tools (Semgrep, Trivy, Checkov, Gitleaks) to scan the codebase.
-- **AI Auto-Remediation:** When a vulnerability is found, it securely passes the broken code to the **VG-AI Engine**, which generates a precise code fix. 
+- **How it works:** A developer runs `vibeguard scan .` locally or inside a GitHub Actions CI/CD pipeline (`--ci`). The CLI spawns underlying open-source security binaries (Trivy, Semgrep, Gitleaks, Checkov, npm audit) to scan the codebase securely via `execFile`.
+- **AI Auto-Remediation:** When a vulnerability is found, it selectively passes sanitized code context (scrubbing AWS keys/secrets) to the **VG-AI Engine** (powered by NVIDIA NIM), which generates a precise code fix. 
 - **Telemetry:** Finally, it packages the scan results and AI fixes into a JSON payload and `POST`s it to the Backend API.
 
 ### 2. The Express Backend API (`apps/api`)
 - **Role:** The central nervous system.
-- **How it works:** Built with Node.js and Express, this server receives the telemetry payload via a webhook (`/api/scans/upload`). It validates the API key, normalizes the security data, and stores it.
-- **Endpoints:** It exposes RESTful endpoints (e.g., `/api/findings`, `/api/scans`) for the React dashboard to consume.
+- **How it works:** Built with Node.js and Express, this server receives the telemetry payload via a protected webhook (`/api/scans/upload`). It validates the API key, calculates a SHA-256 fingerprint for deduplication, and stores it in SQLite (dev) or PostgreSQL (prod) via Prisma ORM.
 
 ### 3. The React Dashboard (`apps/web`)
 - **Role:** The command center for Security Engineers.
-- **How it works:** Built with React, Vite, and TailwindCSS. It fetches the normalized data from the API and visualizes it across a sleek, dark-mode UI. Features include expanding vulnerabilities to see side-by-side AI remediation snippets.
+- **How it works:** Built with React and Vite. It fetches the normalized data from the API and visualizes it across a sleek UI. Features include exploring vulnerabilities and side-by-side AI remediation snippets.
 
 ---
 
-## 🔍 The 5 Core Security Vectors Scanned
+## Getting Started
 
-1. **SAST (Static Application Security Testing):** Scans source code for logical flaws, SQL Injections, and XSS (powered by Semgrep).
-2. **SCA (Software Composition Analysis):** Scans `package.json` to find known CVEs in third-party dependencies.
-3. **Secrets:** Scans Git history to catch accidentally leaked AWS API keys or database passwords.
-4. **IaC (Infrastructure as Code):** Scans Terraform (`.tf`) for cloud misconfigurations.
-5. **Containers:** Scans Dockerfiles and base images for OS-level vulnerabilities.
+### 1. Requirements
+- Node.js v20+
+- Supported Scanners in `$PATH` (Trivy, Semgrep, Gitleaks, Checkov).
+
+### 2. Environment Configuration
+Create a `.env` file in the root, `apps/api`, and `apps/web`:
+
+```env
+# Required for CLI and API Authentication
+VIBEGUARD_API_KEY="your-secure-api-key"
+VITE_VIBEGUARD_API_KEY="your-secure-api-key"
+VITE_API_URL="http://localhost:3001"
+
+# Required for AI Remediation via NVIDIA NIM
+NVIDIA_API_KEY="your-nvidia-nim-key"
+```
+
+### 3. Build & Test (Root Workspace)
+The root of the repository provides seamless orchestration for building the entire monorepo:
+
+```bash
+# Install dependencies across all workspaces
+npm ci
+
+# Build the entire project (Packages -> API -> Web)
+npm run build
+
+# Run the Jest test suites
+npm test
+```
+
+### 4. Running the Platform
+Start the API and Web Dashboard locally:
+
+```bash
+# Starts both apps/api (Port 3001) and apps/web (Port 5173)
+npm run dev
+```
+
+### 5. Running a Scan
+Use the CLI to scan your local project:
+
+```bash
+# Run interactive scanner
+npx ts-node packages/cli/src/index.ts scan .
+
+# Run in CI mode (Strict exit codes 0/1/2)
+npx ts-node packages/cli/src/index.ts scan . --ci
+```
 
 ---
 
-## 🚀 Cloud Deployment Options
+## Deployment
 
-**1. The Hobbyist Route (Free)**
-* **Frontend:** Hosted on **Vercel** (Global CDN).
-* **Backend:** Hosted on **Render.com** (Free Web Services).
-* *Benefits:* Takes 5 minutes to deploy, zero cost, automatic GitHub CI/CD integration.
+**Docker & Infrastructure as Code (AWS)**
+- The repository includes a hardened, multi-stage `Dockerfile.api` running as a non-root user.
+- Production infrastructure is defined in `iac/` (Terraform) for AWS RDS (PostgreSQL) and Secrets Manager.
+- *Note: AWS deployment is validated via `terraform validate` in GitHub Actions, but live deployment depends on your AWS environment setup.*
 
-**2. The Enterprise Route (AWS & Terraform)**
-* **Infrastructure as Code:** The repository includes an `iac/` folder containing production-grade Terraform configurations.
-* **Architecture:** 
-  * The React dashboard is hosted on an **AWS S3 Bucket** and served globally via **AWS CloudFront**.
-  * The Express API is containerized using Docker, stored in **AWS ECR**, and run serverlessly on an **AWS ECS Fargate** cluster behind an **Application Load Balancer**.
-* *Benefits:* Highly scalable, secure, and proves advanced Cloud/DevOps engineering skills. Includes GitHub Actions CI/CD for `terraform validate`.
+## Limitations & Experimental Features
+- **Prowler/AWS CSPM:** The Prowler adapter is currently experimental.
+- **Async Workers:** The scan execution model is currently synchronous within the CLI. A true server-side SQS worker pool is planned for future releases.
+- **WebSockets:** The dashboard utilizes standard HTTP polling. No WebSockets are implemented.

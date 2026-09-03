@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config';
+import { fetchApi } from '../config';
 import { useState, useEffect } from 'react';
 import { FolderGit2, ExternalLink, Calendar, GitFork } from 'lucide-react';
 import { toast } from 'sonner';
@@ -7,7 +7,7 @@ export function Repositories() {
   const [repositories, setRepositories] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/repositories`)
+    fetchApi('/api/repositories')
       .then(res => res.json())
       .then(data => {
         setRepositories(data);

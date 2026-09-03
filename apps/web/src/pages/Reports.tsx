@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config';
+import { fetchApi } from '../config';
 import { Download, FileText, FileJson } from 'lucide-react';
 import { toast } from 'sonner';
 

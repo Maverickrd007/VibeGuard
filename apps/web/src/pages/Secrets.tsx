@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config';
+import { fetchApi } from '../config';
 import { useState, useEffect } from 'react';
 import { KeyRound, EyeOff, Lock, Unlock, ShieldAlert } from 'lucide-react';
 
@@ -6,7 +6,7 @@ export function Secrets() {
   const [secrets, setSecrets] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/findings`)
+    fetchApi('/api/findings')
       .then(res => res.json())
       .then(data => {
         // Filter for Secrets scanning findings

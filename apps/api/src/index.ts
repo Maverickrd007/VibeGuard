@@ -10,10 +10,28 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Structured Logging Middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  const requestId = crypto.randomUUID();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(JSON.stringify({
+      requestId,
+      method: req.method,
+      path: req.path,
+      status: res.statusCode,
+      durationMs: duration,
+      timestamp: new Date().toISOString()
+    }));
+  });
+  next();
+});
+
 // API Authentication Middleware
 const authenticateApiKey = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
-  const apiKey = process.env.VIBEGUARD_API_KEY || 'dev-api-key-123';
+  const apiKey = process.env.VIBEGUARD_API_KEY;
   
   if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
     return res.status(401).json({ error: 'Unauthorized: Invalid API Key' });
@@ -34,6 +52,36 @@ app.get('/ready', async (req: Request, res: Response) => {
     res.status(503).json({ status: 'unavailable', database: 'disconnected' });
   }
 });
+
+app.get('/metrics', async (req: Request, res: Response) => {
+  try {
+    const totalScans = await prisma.scan.count();
+    const successfulScans = await prisma.scan.count({ where: { status: 'COMPLETED' } });
+    const failedScans = await prisma.scan.count({ where: { status: 'FAILED' } });
+    
+    const findingsCounts = await prisma.finding.groupBy({
+      by: ['severity'],
+      _count: true
+    });
+
+    const metrics = {
+      totalScans,
+      successfulScans,
+      failedScans,
+      findingsBySeverity: findingsCounts.reduce((acc: Record<string, number>, curr: any) => {
+        acc[curr.severity] = curr._count;
+        return acc;
+      }, {} as Record<string, number>)
+    };
+    
+    res.json(metrics);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate metrics' });
+  }
+});
+
+// Protect all /api routes
+app.use('/api', authenticateApiKey);
 
 // --- Repositories ---
 app.get('/api/repositories', async (req: Request, res: Response) => {
@@ -60,7 +108,7 @@ app.get('/api/scans', async (req: Request, res: Response) => {
   }
 });
 
-app.post('/api/scans/upload', authenticateApiKey, async (req: Request, res: Response) => {
+app.post('/api/scans/upload', async (req: Request, res: Response) => {
   try {
     const { repositoryName, repositoryUrl, numericScore, score, findings } = req.body;
     

@@ -40,8 +40,11 @@ jobs:
       - name: Install VibeGuard Dependencies
         run: npm ci
 
-      - name: Build VibeGuard CLI
-        run: npm run build --workspace=packages/cli
+      - name: Build Project
+        run: npm run build
+
+      - name: Run Tests
+        run: npm test
 
       - name: Run VibeGuard Scanner
         run: |

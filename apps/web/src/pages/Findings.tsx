@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config';
+import { fetchApi } from '../config';
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, ShieldAlert, Cpu, CheckCircle2, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -8,7 +8,7 @@ export function Findings() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/findings`)
+    fetchApi('/api/findings')
       .then(res => res.json())
       .then(data => setFindings(data))
       .catch(console.error);

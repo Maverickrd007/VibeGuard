@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config';
+import { fetchApi } from '../config';
 import { useState, useEffect } from 'react';
 import { Activity, Clock, Shield, Terminal, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
@@ -7,7 +7,7 @@ export function Scans() {
   const [scans, setScans] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/scans`)
+    fetchApi('/api/scans')
       .then(res => res.json())
       .then(data => {
         setScans(data);

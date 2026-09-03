@@ -9,9 +9,10 @@
     "scanners/*"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 0",
-    "lint": "echo \"Error: no lint specified\" && exit 0",
-    "typecheck": "echo \"Error: no typecheck specified\" && exit 0",
-    "build": "echo \"Error: no build specified\" && exit 0"
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspace=packages/types && npm run build --workspaces --if-present",
+    "dev": "npm run dev --workspaces --if-present"
   }
 }

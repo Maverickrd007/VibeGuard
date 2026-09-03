@@ -140,7 +140,7 @@ program
 
     try {
       const API_URL = process.env.VIBEGUARD_API_URL || 'http://localhost:3001';
-      const API_KEY = process.env.VIBEGUARD_API_KEY || 'dev-api-key-123';
+      const API_KEY = process.env.VIBEGUARD_API_KEY;
       const response = await fetch(`${API_URL}/api/scans/upload`, {
         method: 'POST',
         headers: { 

@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config';
+import { fetchApi } from '../config';
 import { ShieldAlert, CheckCircle, AlertTriangle, Activity, Terminal, ExternalLink } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { NavLink } from 'react-router-dom';
@@ -19,7 +19,7 @@ export function Overview() {
   const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/scans`)
+    fetchApi('/api/scans')
       .then(res => res.json())
       .then(data => {
         setScans(data);
@@ -36,7 +36,7 @@ export function Overview() {
       })
       .catch(console.error);
 
-    fetch(`${API_BASE_URL}/api/findings`)
+    fetchApi('/api/findings')
       .then(res => res.json())
       .then(data => {
         let c = 0, h = 0, m = 0, l = 0;
