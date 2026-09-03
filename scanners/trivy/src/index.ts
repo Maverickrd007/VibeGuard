@@ -1,11 +1,11 @@
 import { SecurityScanner } from '@maverick006/security-engine';
 import { ScanInput, ScannerResult } from '@maverick006/types';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { parseTrivyOutput } from './parser';
 import * as path from 'path';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export class TrivyScanner implements SecurityScanner {
   public name = 'Trivy';
@@ -18,9 +18,9 @@ export class TrivyScanner implements SecurityScanner {
     try {
       const safePath = path.resolve(input.repositoryPath);
       
-      // Trivy fs scans the filesystem for both dependencies, OS packages (if roots are present), and IaC.
-      // --security-checks vuln,config,secret
-      const { stdout } = await execAsync(`trivy fs --format json "${safePath}"`, {
+      // Use execFile to prevent command injection
+      const trivyCmd = process.platform === 'win32' ? 'trivy.exe' : 'trivy';
+      const { stdout } = await execFileAsync(trivyCmd, ['fs', '--format', 'json', safePath], {
         timeout: 300000,
         maxBuffer: 1024 * 1024 * 50
       });

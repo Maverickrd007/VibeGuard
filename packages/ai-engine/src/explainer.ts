@@ -35,7 +35,12 @@ export class ContextualExplainer {
 
     try {
       const modelName = options.model || this.defaultModel;
-      const prompt = this.buildPrompt(finding, options.codeContext);
+      
+      // MASK SECRETS BEFORE SENDING TO LLM
+      const safeContext = this.maskSecrets(options.codeContext || '');
+      const safeFinding = { ...finding, codeSnippet: this.maskSecrets(finding.codeSnippet || '') };
+      
+      const prompt = this.buildPrompt(safeFinding, safeContext);
       
       const completion = await this.ai.chat.completions.create({
         model: modelName,
@@ -51,6 +56,21 @@ export class ContextualExplainer {
       console.error('Failed to generate AI explanation:', error);
       return this.generateFallbackExplanation(finding);
     }
+  }
+
+  /**
+   * Prevents raw secrets from leaking to the LLM via simple regex masking.
+   */
+  private maskSecrets(text: string): string {
+    if (!text) return text;
+    let masked = text;
+    // Mask AWS Keys
+    masked = masked.replace(/AKIA[0-9A-Z]{16}/g, 'AKIA[MASKED_AWS_KEY]');
+    // Mask Generic Secrets (e.g. secret="...", token='...')
+    masked = masked.replace(/(password|secret|token|key)["'\s:=]+(["'])(?:(?!\2).)+(\2)/gi, '$1="[MASKED_SECRET]"');
+    // Mask JWTs
+    masked = masked.replace(/eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/g, '[MASKED_JWT]');
+    return masked;
   }
 
   private buildPrompt(finding: NormalizedFinding, codeContext?: string): string {
@@ -109,9 +129,9 @@ Format your response exactly as the following JSON. Do not include markdown bloc
       return {
         id: `explain-${Date.now()}`,
         findingId,
-        summary: 'AWS Secret Key is hardcoded in the source code.',
-        details: 'Hardcoding secrets in source code allows anyone with repository access to obtain credentials.',
-        remediation: 'Use environment variables or AWS Secrets Manager to securely store and retrieve secrets.',
+        summary: 'AI Explanation Failed',
+        details: 'The AI model failed to return a valid JSON response.',
+        remediation: 'Please manually review the vulnerability details.',
         modelUsed: this.defaultModel,
         createdAt: new Date()
       };

@@ -1,11 +1,11 @@
 import { SecurityScanner } from '@maverick006/security-engine';
 import { ScanInput, ScannerResult } from '@maverick006/types';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { parseCheckovOutput } from './parser';
 import * as path from 'path';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export class CheckovScanner implements SecurityScanner {
   public name = 'Checkov';
@@ -18,8 +18,9 @@ export class CheckovScanner implements SecurityScanner {
     try {
       const safePath = path.resolve(input.repositoryPath);
       
-      // We expect checkov to be installed in the environment (e.g. via pip install checkov)
-      const { stdout } = await execAsync(`checkov -d "${safePath}" -o json`, {
+      // Use execFile to prevent command injection
+      const checkovCmd = process.platform === 'win32' ? 'checkov.exe' : 'checkov';
+      const { stdout } = await execFileAsync(checkovCmd, ['-d', safePath, '-o', 'json'], {
         timeout: 300000,
         maxBuffer: 1024 * 1024 * 50
       });

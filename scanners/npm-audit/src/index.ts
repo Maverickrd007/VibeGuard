@@ -1,11 +1,11 @@
 import { SecurityScanner } from '@maverick006/security-engine';
 import { ScanInput, ScannerResult } from '@maverick006/types';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { parseNpmAuditOutput } from './parser';
 import * as path from 'path';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export class NpmAuditScanner implements SecurityScanner {
   public name = 'npm-audit';
@@ -18,9 +18,9 @@ export class NpmAuditScanner implements SecurityScanner {
     try {
       const safePath = path.resolve(input.repositoryPath);
       
-      // npm audit --json outputs audit data. We run it in the repository path.
-      // Note: this assumes package.json exists. If it doesn't, npm audit will fail, which we can catch.
-      const { stdout } = await execAsync(`npm audit --json --prefix "${safePath}"`, {
+      // Use execFile to prevent command injection
+      const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+      const { stdout } = await execFileAsync(npmCmd, ['audit', '--json', '--prefix', safePath], {
         timeout: 300000,
         maxBuffer: 1024 * 1024 * 50
       });

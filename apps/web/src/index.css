@@ -19,8 +19,58 @@
   }
 }
 
+@keyframes orbit-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+}
+
 @layer base {
   body {
     @apply bg-[#07080C] text-white;
   }
+}
+
+/* Security shield styling */
+.security-shield {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  opacity: 0.75;
+  filter: drop-shadow(0 0 6px rgba(6, 182, 212, 0.4));
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+/* Make each shield feel like a security object floating in orbit */
+.orbit-1 .security-shield {
+  animation-delay: 0s;
+}
+
+.orbit-2 .security-shield {
+  animation-delay: 0.8s;
+}
+
+.orbit-3 .security-shield {
+  animation-delay: 1.6s;
+}
+
+.orbit-4 .security-shield {
+  animation-delay: 2.4s;
 }

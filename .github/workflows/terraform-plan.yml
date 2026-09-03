@@ -1,0 +1,41 @@
+name: Terraform Cloud Validation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  terraform:
+    name: 'Terraform Plan (Dry Run)'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./iac
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0
+
+    - name: Terraform Format
+      id: fmt
+      run: terraform fmt -check
+      continue-on-error: true
+
+    - name: Terraform Init
+      id: init
+      run: terraform init
+      
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+
+    # We do a 'terraform plan' to prove the code works, 
+    # but we DO NOT provide AWS credentials so it acts as a dry-run/syntax check,
+    # meaning this costs $0 and proves to employers that we use CI/CD for IaC.

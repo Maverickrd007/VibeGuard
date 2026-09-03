@@ -1,0 +1,38 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy root config and package-lock
+COPY package.json package-lock.json* ./
+COPY turbo.json ./
+
+# Copy all workspaces
+COPY apps ./apps
+COPY packages ./packages
+
+# Install dependencies (will install for all workspaces)
+RUN npm install
+
+# Build the API (this will also build its local dependencies via turborepo if configured)
+RUN npm run build --workspace=apps/api
+
+# --- Production Image ---
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=80
+
+# Copy necessary files from builder
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/package-lock.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+
+# Expose the API port
+EXPOSE 80
+
+# Start the API
+CMD ["npm", "start", "--workspace=apps/api"]

@@ -34,11 +34,23 @@ program
     let findings: NormalizedFinding[] = [];
 
     try {
-      // Initialize the security orchestrator and npm audit scanner
+      // Initialize the security orchestrator and scanners
       const { Orchestrator } = require('@maverick006/security-engine');
       const { NpmAuditScanner } = require('@maverick006/scanner-npm-audit');
+      const { TrivyScanner } = require('@maverick006/scanner-trivy');
+      const { SemgrepScanner } = require('@maverick006/scanner-semgrep');
+      const { GitleaksScanner } = require('@maverick006/scanner-gitleaks');
+      const { CheckovScanner } = require('@maverick006/scanner-checkov');
+      const { ZapScanner } = require('@maverick006/scanner-zap');
 
-      const orchestrator = new Orchestrator([new NpmAuditScanner()]);
+      const orchestrator = new Orchestrator([
+        new NpmAuditScanner(),
+        new TrivyScanner(),
+        new SemgrepScanner(),
+        new GitleaksScanner(),
+        new CheckovScanner(),
+        new ZapScanner()
+      ]);
 
       const scanResult = await orchestrator.runScan({
         scanId: `scan-${Date.now()}`,
@@ -50,108 +62,7 @@ program
       findings = scanResult.findings || [];
     } catch (err) {
       // Fallback gracefully if scanner encounters environmental differences
-    }
-
-    // If demo mode or no findings found in empty directory, provide rich showcase findings matching design
-    if (options.demo || findings.length === 0) {
-      findings = [
-        {
-          id: 'VG-CRIT-001',
-          title: 'Hardcoded AWS Secret Key',
-          severity: Severity.CRITICAL,
-          scanner: 'Gitleaks',
-          file: 'config/aws.py',
-          line: 12,
-          description: 'AWS Secret Key is hardcoded in the source code.',
-          codeSnippet: 'AWS_SECRET_KEY = "AKIAIOSFODNN7EXAMPLE"'
-        },
-        {
-          id: 'VG-CRIT-002',
-          title: 'Exposed JWT Secret',
-          severity: Severity.CRITICAL,
-          scanner: 'Gitleaks',
-          file: 'config/auth.py',
-          line: 8,
-          description: 'Hardcoded JWT secret token detected.',
-          codeSnippet: 'const JWT_SECRET = "super_secret_123"'
-        },
-        {
-          id: 'VG-HIGH-003',
-          title: 'SQL Injection Risk',
-          severity: Severity.HIGH,
-          scanner: 'Semgrep',
-          file: 'api/users.py',
-          line: 45,
-          description: 'Direct concatenation of user input into SQL query.',
-          codeSnippet: 'query = "SELECT * FROM users WHERE name = " + req.query.name'
-        },
-        {
-          id: 'VG-HIGH-004',
-          title: 'Outdated Dependency (lodash)',
-          severity: Severity.HIGH,
-          scanner: 'npm-audit',
-          file: 'package.json',
-          line: 23,
-          description: 'Vulnerable prototype pollution in lodash version.',
-          codeSnippet: '"lodash": "4.17.15"'
-        },
-        {
-          id: 'VG-HIGH-005',
-          title: 'Unsafe Deserialization',
-          severity: Severity.HIGH,
-          scanner: 'Semgrep',
-          file: 'utils/parser.py',
-          line: 78,
-          description: 'Unsafe pickle.loads execution.',
-          codeSnippet: 'data = pickle.loads(user_input)'
-        },
-        {
-          id: 'VG-MED-006',
-          title: 'S3 Bucket Public Read',
-          severity: Severity.MEDIUM,
-          scanner: 'Checkov',
-          file: 'iac/s3.tf',
-          line: 14,
-          description: 'Public read access enabled on production storage bucket.',
-          codeSnippet: 'acl = "public-read"'
-        },
-        {
-          id: 'VG-MED-007',
-          title: 'Missing Rate Limiting',
-          severity: Severity.MEDIUM,
-          scanner: 'Semgrep',
-          file: 'api/auth.py',
-          line: 32,
-          description: 'Authentication endpoint lacks rate limiting protection.'
-        },
-        {
-          id: 'VG-MED-008',
-          title: 'CORS Misconfiguration',
-          severity: Severity.MEDIUM,
-          scanner: 'Semgrep',
-          file: 'web/middleware.py',
-          line: 19,
-          description: 'Wildcard CORS origin enabled in production middleware.'
-        },
-        {
-          id: 'VG-LOW-009',
-          title: 'Unused Dependency',
-          severity: Severity.LOW,
-          scanner: 'npm-audit',
-          file: 'package.json',
-          line: 102,
-          description: 'Unused package detected.'
-        },
-        {
-          id: 'VG-LOW-010',
-          title: 'Missing Security Headers',
-          severity: Severity.LOW,
-          scanner: 'Zap',
-          file: 'web/server.py',
-          line: 56,
-          description: 'Strict-Transport-Security header is not set.'
-        }
-      ];
+      console.error(chalk.red('Orchestrator failed to run scans.'), err);
     }
 
     spinner.stop();
@@ -167,12 +78,12 @@ program
     let remediationData: any = undefined;
 
     // Generate AI Remediation
-    if (options.fix || true) {
+    if (findings.length > 0 && (options.fix || true)) {
       try {
         const explainer = new ContextualExplainer();
         const primaryFinding = findings[0];
 
-        let snippet = primaryFinding.codeSnippet || 'AWS_SECRET_KEY = "AKIAIOSFODNN7EXAMPLE"';
+        let snippet = primaryFinding.codeSnippet || '';
         if (primaryFinding.file && existsSync(join(scanDir, primaryFinding.file))) {
           const content = readFileSync(join(scanDir, primaryFinding.file), 'utf-8');
           const lines = content.split('\n');
@@ -182,35 +93,16 @@ program
 
         const explanation = await explainer.explainFinding(primaryFinding, { codeContext: snippet });
 
-        const diffSnippet = [
-          '10  # config/aws.py',
-          '- 11  AWS_SECRET_KEY = "AKIAIOSFODNN7EXAMPLE"',
-          '+ 12  AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")',
-          '13'
-        ].join('\n');
-
         remediationData = {
-          findingId: primaryFinding.id || 'VG-CRIT-001',
-          issue: explanation.summary || 'AWS Secret Key is hardcoded in the source code.',
-          impact: 'This can lead to unauthorized access to your AWS resources and cloud infrastructure.',
-          recommendation: explanation.remediation || 'Use environment variables or AWS Secrets Manager to store secrets.',
-          diffSnippet: explanation.codeFix ? explanation.codeFix : diffSnippet,
-          confidence: 98
+          findingId: primaryFinding.id,
+          issue: explanation.summary,
+          impact: explanation.details || 'Potential security impact based on context.',
+          recommendation: explanation.remediation,
+          diffSnippet: explanation.codeFix || '',
+          confidence: 90
         };
       } catch (e: any) {
-        remediationData = {
-          findingId: 'VG-CRIT-001',
-          issue: 'AWS Secret Key is hardcoded in the source code.',
-          impact: 'This can lead to unauthorized access to your AWS resources.',
-          recommendation: 'Use environment variables or AWS Secrets Manager to store secrets.',
-          diffSnippet: [
-            '10  # config/aws.py',
-            '- 11  AWS_SECRET_KEY = "AKIAIOSFODNN7EXAMPLE"',
-            '+ 12  AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")',
-            '13'
-          ].join('\n'),
-          confidence: 98
-        };
+        console.error(chalk.yellow('AI Remediation generation failed.'), e);
       }
     }
 
@@ -222,6 +114,35 @@ program
       duration,
       remediation: remediationData
     });
+
+    // Sync with Web Dashboard
+    const syncSpinner = ora({
+      text: chalk.dim('Syncing results to VibeGuard Dashboard...'),
+      spinner: 'dots'
+    }).start();
+
+    try {
+      const API_URL = process.env.VIBEGUARD_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/scans/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          repositoryName: gitInfo.name || 'Local Project',
+          repositoryUrl: gitInfo.name || 'local',
+          numericScore: stats.score,
+          score: stats.riskLevel,
+          findings: findings
+        })
+      });
+      
+      if (response.ok) {
+        syncSpinner.succeed(chalk.dim('Results synced to dashboard.'));
+      } else {
+        syncSpinner.fail(chalk.dim('Failed to sync results to dashboard.'));
+      }
+    } catch (e) {
+      syncSpinner.warn(chalk.dim('Dashboard API unreachable. Skipping sync.'));
+    }
   });
 
 program.parse(process.argv);

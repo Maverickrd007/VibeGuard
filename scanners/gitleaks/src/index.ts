@@ -1,11 +1,11 @@
 import { SecurityScanner } from '@maverick006/security-engine';
 import { ScanInput, ScannerResult } from '@maverick006/types';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { parseGitleaksOutput } from './parser';
 import * as path from 'path';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export class GitleaksScanner implements SecurityScanner {
   public name = 'Gitleaks';
@@ -18,13 +18,9 @@ export class GitleaksScanner implements SecurityScanner {
     try {
       const safePath = path.resolve(input.repositoryPath);
       
-      // Gitleaks command: detect secrets in the directory.
-      // --report-format json and --report-path to safely capture output
-      // We will output to stdout using --report-path /dev/stdout on nix, 
-      // but to be cross-platform, we can just let gitleaks write to a file or stdout.
-      // `gitleaks detect --source <path> --no-git --report-format json --report-path -` writes to stdout.
-      
-      const { stdout } = await execAsync(`gitleaks detect --source "${safePath}" --no-git --report-format json --report-path -`, {
+      // Use execFile to prevent command injection
+      const gitleaksCmd = process.platform === 'win32' ? 'gitleaks.exe' : 'gitleaks';
+      const { stdout } = await execFileAsync(gitleaksCmd, ['detect', '--source', safePath, '--no-git', '--report-format', 'json', '--report-path', '-'], {
         timeout: 300000,
         maxBuffer: 1024 * 1024 * 50
       });

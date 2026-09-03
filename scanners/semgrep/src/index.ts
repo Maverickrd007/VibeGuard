@@ -1,11 +1,11 @@
 import { SecurityScanner } from '@maverick006/security-engine';
 import { ScanInput, ScannerResult } from '@maverick006/types';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { parseSemgrepOutput } from './parser';
 import * as path from 'path';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export class SemgrepScanner implements SecurityScanner {
   public name = 'Semgrep';
@@ -22,10 +22,9 @@ export class SemgrepScanner implements SecurityScanner {
       // Validate path to prevent command injection
       const safePath = path.resolve(input.repositoryPath);
       
-      // We run semgrep with --json. We use a timeout to prevent hanging.
-      // Note: In a real environment, we'd ensure `semgrep` is installed.
-      // For fixture/dev mode testing, if it fails to execute, we might catch the error.
-      const { stdout, stderr } = await execAsync(`semgrep scan --json --quiet "${safePath}"`, {
+      // Use execFile to prevent command injection
+      const semgrepCmd = process.platform === 'win32' ? 'semgrep.exe' : 'semgrep';
+      const { stdout, stderr } = await execFileAsync(semgrepCmd, ['scan', '--json', '--quiet', safePath], {
         timeout: 300000, // 5 minutes max
         maxBuffer: 1024 * 1024 * 50 // 50MB max output
       });

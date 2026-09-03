@@ -3,11 +3,22 @@ import { Layout } from './components/Layout';
 import { Landing } from './pages/Landing';
 import { Overview } from './pages/Overview';
 import { Findings } from './pages/Findings';
+import { Repositories } from './pages/Repositories';
+import { Scans } from './pages/Scans';
+import { Dependencies } from './pages/Dependencies';
+import { Secrets } from './pages/Secrets';
+import { Containers } from './pages/Containers';
+import { IaC } from './pages/IaC';
+import { Experiments } from './pages/Experiments';
+import { Reports } from './pages/Reports';
+import { Settings } from './pages/Settings';
 import { Placeholder } from './pages/Placeholder';
+import { Toaster } from 'sonner';
 
 function App() {
   return (
     <Router>
+      <Toaster theme="dark" position="bottom-right" />
       <Routes>
         {/* Landing Page with SaaS Template */}
         <Route path="/" element={<Landing />} />
@@ -21,15 +32,15 @@ function App() {
                 <Route path="/dashboard" element={<Overview />} />
                 <Route path="/overview" element={<Overview />} />
                 <Route path="/findings" element={<Findings />} />
-                <Route path="/repositories" element={<Placeholder title="Repositories" />} />
-                <Route path="/scans" element={<Placeholder title="Scans" />} />
-                <Route path="/dependencies" element={<Placeholder title="Dependencies" />} />
-                <Route path="/secrets" element={<Placeholder title="Secrets" />} />
-                <Route path="/containers" element={<Placeholder title="Containers" />} />
-                <Route path="/iac" element={<Placeholder title="IaC" />} />
-                <Route path="/experiments" element={<Placeholder title="Experiments" />} />
-                <Route path="/reports" element={<Placeholder title="Reports" />} />
-                <Route path="/settings" element={<Placeholder title="Settings" />} />
+                <Route path="/repositories" element={<Repositories />} />
+                <Route path="/scans" element={<Scans />} />
+                <Route path="/dependencies" element={<Dependencies />} />
+                <Route path="/secrets" element={<Secrets />} />
+                <Route path="/containers" element={<Containers />} />
+                <Route path="/iac" element={<IaC />} />
+                <Route path="/experiments" element={<Experiments />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/settings" element={<Settings />} />
               </Routes>
             </Layout>
           }

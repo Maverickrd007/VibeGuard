@@ -1,18 +1,80 @@
+import { API_BASE_URL } from '../config';
 import { ShieldAlert, CheckCircle, AlertTriangle, Activity, Terminal, ExternalLink } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { NavLink } from 'react-router-dom';
-
-const data = [
-  { name: 'Mon', critical: 4, high: 10, medium: 15, low: 20 },
-  { name: 'Tue', critical: 3, high: 8, medium: 12, low: 18 },
-  { name: 'Wed', critical: 3, high: 12, medium: 14, low: 22 },
-  { name: 'Thu', critical: 2, high: 7, medium: 10, low: 15 },
-  { name: 'Fri', critical: 1, high: 5, medium: 8, low: 12 },
-  { name: 'Sat', critical: 0, high: 4, medium: 7, low: 10 },
-  { name: 'Sun', critical: 0, high: 2, medium: 5, low: 8 },
-];
+import { useState, useEffect } from 'react';
 
 export function Overview() {
+  const [scans, setScans] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0,
+    totalScans: 0,
+    grade: 'A',
+    score: 100,
+  });
+
+  const [chartData, setChartData] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/scans`)
+      .then(res => res.json())
+      .then(data => {
+        setScans(data);
+        setStats(prev => ({ ...prev, totalScans: data.length }));
+        
+        if (data.length > 0) {
+          const latest = data[0];
+          setStats(prev => ({
+            ...prev,
+            grade: latest.score || 'A',
+            score: latest.numericScore || 100,
+          }));
+        }
+      })
+      .catch(console.error);
+
+    fetch(`${API_BASE_URL}/api/findings`)
+      .then(res => res.json())
+      .then(data => {
+        let c = 0, h = 0, m = 0, l = 0;
+        data.forEach((f: any) => {
+          const s = (f.severity || '').toUpperCase();
+          if (s === 'CRITICAL') c++;
+          else if (s === 'HIGH') h++;
+          else if (s === 'MEDIUM') m++;
+          else l++;
+        });
+        setStats(prev => ({ ...prev, critical: c, high: h, medium: m, low: l }));
+        
+        // Simple grouped data for the chart by date
+        const grouped = data.reduce((acc: any, f: any) => {
+          const date = new Date(f.createdAt).toLocaleDateString('en-US', { weekday: 'short' });
+          if (!acc[date]) acc[date] = { name: date, critical: 0, high: 0, medium: 0, low: 0 };
+          const s = (f.severity || '').toUpperCase();
+          if (s === 'CRITICAL') acc[date].critical++;
+          else if (s === 'HIGH') acc[date].high++;
+          else if (s === 'MEDIUM') acc[date].medium++;
+          else acc[date].low++;
+          return acc;
+        }, {});
+        
+        const cData = Object.values(grouped);
+        // If empty, provide some dummy trends
+        if (cData.length === 0) {
+          setChartData([
+            { name: 'Mon', critical: 0, high: 0, medium: 0, low: 0 },
+            { name: 'Tue', critical: 0, high: 0, medium: 0, low: 0 },
+          ]);
+        } else {
+          setChartData(cData);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
   return (
     <div className="space-y-8">
       {/* Header Stats */}
@@ -27,7 +89,7 @@ export function Overview() {
             <div className="ml-4 w-0 flex-1">
               <dt className="text-xs font-medium text-gray-400 uppercase tracking-wider">Security Score</dt>
               <dd className="text-2xl font-bold text-white mt-0.5">
-                A <span className="text-sm font-normal text-emerald-400">(92/100)</span>
+                {stats.grade.replace(' RISK', '')} <span className="text-sm font-normal text-emerald-400">({stats.score}/100)</span>
               </dd>
             </div>
           </div>
@@ -43,7 +105,7 @@ export function Overview() {
             <div className="ml-4 w-0 flex-1">
               <dt className="text-xs font-medium text-gray-400 uppercase tracking-wider">Critical / High</dt>
               <dd className="text-2xl font-bold text-white mt-0.5">
-                0 <span className="text-sm font-normal text-gray-500">/ 2</span>
+                {stats.critical} <span className="text-sm font-normal text-gray-500">/ {stats.high}</span>
               </dd>
             </div>
           </div>
@@ -59,7 +121,7 @@ export function Overview() {
             <div className="ml-4 w-0 flex-1">
               <dt className="text-xs font-medium text-gray-400 uppercase tracking-wider">Medium / Low</dt>
               <dd className="text-2xl font-bold text-white mt-0.5">
-                5 <span className="text-sm font-normal text-gray-500">/ 8</span>
+                {stats.medium} <span className="text-sm font-normal text-gray-500">/ {stats.low}</span>
               </dd>
             </div>
           </div>
@@ -74,7 +136,7 @@ export function Overview() {
             </div>
             <div className="ml-4 w-0 flex-1">
               <dt className="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Scans</dt>
-              <dd className="text-2xl font-bold text-white mt-0.5">14</dd>
+              <dd className="text-2xl font-bold text-white mt-0.5">{stats.totalScans}</dd>
             </div>
           </div>
         </div>
@@ -113,7 +175,7 @@ export function Overview() {
 
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="criticalGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8}/>
