@@ -1,82 +1,103 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import crypto from 'crypto';
+import { PrismaClient } from '@prisma/client';
 
+const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
 
-// In-memory storage
-let repositories: any[] = [];
-let scans: any[] = [];
-let findings: any[] = [];
+// API Authentication Middleware
+const authenticateApiKey = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  const apiKey = process.env.VIBEGUARD_API_KEY || 'dev-api-key-123';
+  
+  if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid API Key' });
+  }
+  next();
+};
 
-// --- Repositories ---
-app.get('/api/repositories', (req: Request, res: Response) => {
-  res.json(repositories);
+// --- Health ---
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok' });
 });
 
-app.post('/api/repositories', (req: Request, res: Response) => {
-  const { name, url } = req.body;
-  const repo = { id: crypto.randomUUID(), name, url, createdAt: new Date() };
-  repositories.push(repo);
-  res.status(201).json(repo);
+app.get('/ready', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'ready' });
+});
+
+// --- Repositories ---
+app.get('/api/repositories', async (req: Request, res: Response) => {
+  try {
+    const repos = await prisma.repository.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(repos);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch repositories' });
+  }
 });
 
 // --- Scans ---
-app.get('/api/scans', (req: Request, res: Response) => {
-  // Return sorted scans with nested findings
-  const populatedScans = scans.map(scan => ({
-    ...scan,
-    findings: findings.filter(f => f.scanId === scan.id)
-  })).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  res.json(populatedScans);
+app.get('/api/scans', async (req: Request, res: Response) => {
+  try {
+    const scans = await prisma.scan.findMany({
+      include: { findings: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(scans);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch scans' });
+  }
 });
 
-app.post('/api/scans/upload', (req: Request, res: Response) => {
+app.post('/api/scans/upload', authenticateApiKey, async (req: Request, res: Response) => {
   try {
-    const { repositoryName, repositoryUrl, numericScore, score, findings: newFindings } = req.body;
+    const { repositoryName, repositoryUrl, numericScore, score, findings } = req.body;
     
     // Find or create repository
-    let repository = repositories.find(r => r.url === repositoryUrl);
+    let repository = await prisma.repository.findFirst({
+      where: { url: repositoryUrl || 'local' }
+    });
+    
     if (!repository) {
-      repository = { id: crypto.randomUUID(), name: repositoryName || 'Local Project', url: repositoryUrl || 'local', createdAt: new Date() };
-      repositories.push(repository);
+      repository = await prisma.repository.create({
+        data: {
+          name: repositoryName || 'Local Project',
+          url: repositoryUrl || 'local'
+        }
+      });
     }
     
-    // Create scan
-    const scanId = crypto.randomUUID();
-    const scan = {
-      id: scanId,
-      repositoryId: repository.id,
-      status: 'COMPLETED',
-      numericScore,
-      score,
-      createdAt: new Date(),
-      completedAt: new Date()
-    };
-    scans.push(scan);
+    // Create scan with findings
+    const scan = await prisma.scan.create({
+      data: {
+        repositoryId: repository.id,
+        status: 'COMPLETED',
+        numericScore,
+        score,
+        completedAt: new Date(),
+        findings: {
+          create: (findings || []).map((f: any) => ({
+            scanner: f.scanner || 'VibeGuard',
+            title: f.title || 'Unknown Finding',
+            description: f.description || '',
+            severity: f.severity || 'INFO',
+            file: f.file,
+            line: f.line,
+            codeSnippet: f.codeSnippet,
+            ruleId: f.ruleId,
+            category: f.category
+          }))
+        }
+      },
+      include: { findings: true }
+    });
     
-    // Create findings
-    const createdFindings = (newFindings || []).map((f: any) => ({
-      id: crypto.randomUUID(),
-      scanId,
-      scanner: f.scanner || 'VibeGuard',
-      title: f.title,
-      description: f.description,
-      severity: f.severity,
-      file: f.file,
-      line: f.line,
-      codeSnippet: f.codeSnippet,
-      ruleId: f.ruleId,
-      category: f.category,
-      createdAt: new Date()
-    }));
-    findings.push(...createdFindings);
-    
-    res.status(201).json({ ...scan, findings: createdFindings });
+    res.status(201).json(scan);
   } catch (error) {
     console.error('Failed to upload scan:', error);
     res.status(500).json({ error: 'Failed to upload scan' });
@@ -84,15 +105,22 @@ app.post('/api/scans/upload', (req: Request, res: Response) => {
 });
 
 // --- Findings ---
-app.get('/api/findings', (req: Request, res: Response) => {
-  const sortedFindings = [...findings].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  res.json(sortedFindings);
+app.get('/api/findings', async (req: Request, res: Response) => {
+  try {
+    const findings = await prisma.finding.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { scan: true }
+    });
+    res.json(findings);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch findings' });
+  }
 });
 
 // --- Server Startup ---
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`VibeGuard API Server running on port ${PORT} (In-Memory Mode)`);
+    console.log(`VibeGuard API Server running on port ${PORT} (Prisma / SQLite)`);
   });
 }
 

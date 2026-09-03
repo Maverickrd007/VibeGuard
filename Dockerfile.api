@@ -10,10 +10,11 @@ COPY turbo.json ./
 COPY apps ./apps
 COPY packages ./packages
 
-# Install dependencies (will install for all workspaces)
+# Install dependencies and generate Prisma client
 RUN npm install
+RUN npm run db:generate --workspace=apps/api
 
-# Build the API (this will also build its local dependencies via turborepo if configured)
+# Build the API
 RUN npm run build --workspace=apps/api
 
 # --- Production Image ---
@@ -30,9 +31,19 @@ COPY --from=builder /app/package-lock.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+
+# Run as non-root user for security (Phase 14 & 19)
+RUN addgroup -S vibeguard && adduser -S vibeguard -G vibeguard
+RUN chown -R vibeguard:vibeguard /app
+USER vibeguard
 
 # Expose the API port
 EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:80/health || exit 1
 
 # Start the API
 CMD ["npm", "start", "--workspace=apps/api"]

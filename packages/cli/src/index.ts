@@ -21,14 +21,18 @@ program
   .description('Run a security scan on the current directory or target path')
   .option('-d, --dir <path>', 'Directory to scan', process.cwd())
   .option('--fix', 'Automatically generate AI remediation fixes and interactive diff')
-  .option('--demo', 'Showcase the complete security dashboard with sample findings')
+  .option('--ci', 'Run in non-interactive CI mode and exit with policy status code')
   .action(async (targetPath, options) => {
     const scanDir = targetPath || options.dir || process.cwd();
     const startTime = Date.now();
+    let hasSystemError = false;
 
+    // Use a minimal spinner if in CI mode, or bypass ora entirely if preferred.
+    // For simplicity, we just won't render the interactive dashboard if --ci is set.
     const spinner = ora({
       text: chalk.hex('#00E5FF')('Scanning repository for vulnerabilities (SAST, SCA, Secrets, IaC)...'),
-      spinner: 'dots'
+      spinner: 'dots',
+      isSilent: options.ci
     }).start();
 
     let findings: NormalizedFinding[] = [];
@@ -61,8 +65,8 @@ program
 
       findings = scanResult.findings || [];
     } catch (err) {
-      // Fallback gracefully if scanner encounters environmental differences
       console.error(chalk.red('Orchestrator failed to run scans.'), err);
+      hasSystemError = true;
     }
 
     spinner.stop();
@@ -77,8 +81,8 @@ program
 
     let remediationData: any = undefined;
 
-    // Generate AI Remediation
-    if (findings.length > 0 && (options.fix || true)) {
+    // Generate AI Remediation only if not in CI mode to save time, or if explicitly asked
+    if (findings.length > 0 && !options.ci && (options.fix || true)) {
       try {
         const explainer = new ContextualExplainer();
         const primaryFinding = findings[0];
@@ -102,30 +106,47 @@ program
           confidence: 90
         };
       } catch (e: any) {
-        console.error(chalk.yellow('AI Remediation generation failed.'), e);
+        if (!options.ci) {
+          console.error(chalk.yellow('AI Remediation generation failed.'), e);
+        }
       }
     }
 
-    // Render the beautiful cyber dashboard
-    renderDashboard({
-      findings,
-      stats,
-      gitInfo,
-      duration,
-      remediation: remediationData
-    });
+    if (!options.ci) {
+      // Render the beautiful cyber dashboard interactively
+      renderDashboard({
+        findings,
+        stats,
+        gitInfo,
+        duration,
+        remediation: remediationData
+      });
+    } else {
+      // CI Output
+      console.log(`VibeGuard CI Scan Complete. Duration: ${duration}`);
+      console.log(`Findings: ${findings.length}`);
+      console.log(`Risk Score: ${stats.score}/100 (${stats.riskLevel})`);
+      const critical = findings.filter(f => (f.severity || '').toUpperCase() === Severity.CRITICAL).length;
+      const high = findings.filter(f => (f.severity || '').toUpperCase() === Severity.HIGH).length;
+      console.log(`Critical: ${critical}, High: ${high}`);
+    }
 
     // Sync with Web Dashboard
     const syncSpinner = ora({
       text: chalk.dim('Syncing results to VibeGuard Dashboard...'),
-      spinner: 'dots'
+      spinner: 'dots',
+      isSilent: options.ci
     }).start();
 
     try {
       const API_URL = process.env.VIBEGUARD_API_URL || 'http://localhost:3001';
+      const API_KEY = process.env.VIBEGUARD_API_KEY || 'dev-api-key-123';
       const response = await fetch(`${API_URL}/api/scans/upload`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        },
         body: JSON.stringify({
           repositoryName: gitInfo.name || 'Local Project',
           repositoryUrl: gitInfo.name || 'local',
@@ -143,6 +164,25 @@ program
     } catch (e) {
       syncSpinner.warn(chalk.dim('Dashboard API unreachable. Skipping sync.'));
     }
+
+    // Exit codes
+    if (hasSystemError) {
+      process.exit(2);
+    }
+    
+    // Policy fail if we have CRITICAL or HIGH findings
+    const criticalOrHighCount = findings.filter(f => {
+      const s = (f.severity || '').toUpperCase();
+      return s === Severity.CRITICAL || s === Severity.HIGH;
+    }).length;
+
+    if (criticalOrHighCount > 0) {
+      if (options.ci) console.error(chalk.red('Security Policy FAILED.'));
+      process.exit(1);
+    }
+
+    if (options.ci) console.log(chalk.green('Security Policy PASSED.'));
+    process.exit(0);
   });
 
 program.parse(process.argv);
