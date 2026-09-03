@@ -22,3 +22,16 @@ variable "project_name" {
   type        = string
   default     = "vibeguard"
 }
+
+variable "vibeguard_api_key" {
+  description = "Initial VibeGuard API key stored in Secrets Manager. Must be supplied at apply time."
+  type        = string
+  sensitive   = true
+}
+
+variable "nvidia_api_key" {
+  description = "NVIDIA NIM API key stored in Secrets Manager. Must be supplied at apply time."
+  type        = string
+  sensitive   = true
+}
+

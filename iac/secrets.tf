@@ -6,8 +6,8 @@ resource "aws_secretsmanager_secret" "api_keys" {
 resource "aws_secretsmanager_secret_version" "api_keys_initial" {
   secret_id     = aws_secretsmanager_secret.api_keys.id
   secret_string = jsonencode({
-    VIBEGUARD_API_KEY = "dev-api-key-123"
-    NVIDIA_API_KEY    = "nvapi-..."
+    VIBEGUARD_API_KEY = var.vibeguard_api_key
+    NVIDIA_API_KEY    = var.nvidia_api_key
   })
 }
 

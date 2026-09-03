@@ -20,8 +20,10 @@ Navigate to this directory and initialize Terraform:
 ```bash
 cd iac
 terraform init
-terraform apply -auto-approve
+terraform apply -var="vibeguard_api_key=your_secure_api_key" -var="nvidia_api_key=your_nvidia_key" -auto-approve
 ```
+> **Note**: You must supply the initial `vibeguard_api_key` and `nvidia_api_key` via the `-var` flag, a `terraform.tfvars` file (which is gitignored), or a CI secret. Whoever provisions this should rotate the key immediately after the first `apply` if it was ever typed in plaintext anywhere.
+
 *Note: The ECS service might fail to stabilize initially because the ECR repository is empty. This is normal.*
 
 ### 2. Build and Push the Backend API
