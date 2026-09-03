@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -25,8 +26,13 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
 });
 
-app.get('/ready', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'ready' });
+app.get('/ready', async (req: Request, res: Response) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({ status: 'ready', database: 'connected' });
+  } catch (err) {
+    res.status(503).json({ status: 'unavailable', database: 'disconnected' });
+  }
 });
 
 // --- Repositories ---
@@ -81,17 +87,23 @@ app.post('/api/scans/upload', authenticateApiKey, async (req: Request, res: Resp
         score,
         completedAt: new Date(),
         findings: {
-          create: (findings || []).map((f: any) => ({
-            scanner: f.scanner || 'VibeGuard',
-            title: f.title || 'Unknown Finding',
-            description: f.description || '',
-            severity: f.severity || 'INFO',
-            file: f.file,
-            line: f.line,
-            codeSnippet: f.codeSnippet,
-            ruleId: f.ruleId,
-            category: f.category
-          }))
+          create: (findings || []).map((f: any) => {
+            const rawFingerprint = f.fingerprint || `${f.scanner}-${f.ruleId}-${f.file}-${f.line}`;
+            const fingerprint = crypto.createHash('sha256').update(rawFingerprint).digest('hex');
+            
+            return {
+              scanner: f.scanner || 'VibeGuard',
+              title: f.title || 'Unknown Finding',
+              description: f.description || '',
+              severity: f.severity || 'INFO',
+              file: f.file,
+              line: f.line,
+              codeSnippet: f.codeSnippet,
+              ruleId: f.ruleId,
+              category: f.category,
+              fingerprint
+            };
+          })
         }
       },
       include: { findings: true }

@@ -14,24 +14,29 @@ model Repository {
   url       String
   createdAt DateTime @default(now())
   scans     Scan[]
+
+  @@index([url])
 }
 
 model Scan {
   id           String     @id @default(uuid())
   repositoryId String
-  repository   Repository @relation(fields: [repositoryId], references: [id])
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   status       String     // PENDING, IN_PROGRESS, COMPLETED, FAILED
   score        String?    // e.g. A, B, C, D, F
   numericScore Int?
   createdAt    DateTime   @default(now())
   completedAt  DateTime?
   findings     Finding[]
+
+  @@index([repositoryId])
+  @@index([createdAt])
 }
 
 model Finding {
   id             String   @id @default(uuid())
   scanId         String
-  scan           Scan     @relation(fields: [scanId], references: [id])
+  scan           Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
   scanner        String
   scannerVersion String?
   ruleId         String?
@@ -45,5 +50,10 @@ model Finding {
   file           String?
   line           Int?
   codeSnippet    String?
+  fingerprint    String?
   createdAt      DateTime @default(now())
+
+  @@index([scanId])
+  @@index([severity])
+  @@index([fingerprint])
 }

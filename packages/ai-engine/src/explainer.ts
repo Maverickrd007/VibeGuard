@@ -54,7 +54,7 @@ export class ContextualExplainer {
       return this.parseAIResponse(finding.scanId || 'unknown', text);
     } catch (error: any) {
       console.error('Failed to generate AI explanation:', error);
-      return this.generateFallbackExplanation(finding);
+      return this.generateFallbackExplanation(finding, 'FAILED');
     }
   }
 
@@ -138,13 +138,15 @@ Format your response exactly as the following JSON. Do not include markdown bloc
     }
   }
 
-  private generateFallbackExplanation(finding: NormalizedFinding): AIExplanation {
+  private generateFallbackExplanation(finding: NormalizedFinding, state: 'NOT_CONFIGURED' | 'FAILED' = 'NOT_CONFIGURED'): AIExplanation {
     return {
       id: `fallback-${Date.now()}`,
       findingId: finding.scanId,
-      summary: `Automated summary for ${finding.title}`,
+      summary: state,
       details: finding.description,
-      remediation: 'No NVIDIA_API_KEY detected. To unlock automatic AI code generation and remediation, please set the NVIDIA_API_KEY environment variable!',
+      remediation: state === 'NOT_CONFIGURED' 
+        ? 'NOT_CONFIGURED: Set NVIDIA_API_KEY to enable AI.' 
+        : 'FAILED: AI provider request failed.',
       modelUsed: 'fallback',
       createdAt: new Date()
     };

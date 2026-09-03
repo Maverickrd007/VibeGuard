@@ -132,27 +132,34 @@ export function Findings() {
                               <h4 className="text-sm font-bold text-cyan-400 mb-2 flex items-center gap-2">
                                 <Cpu className="h-4 w-4" /> VG-AI Auto-Remediation
                               </h4>
-                              <p className="text-xs text-gray-400 leading-relaxed mb-6 relative z-10">
-                                VibeGuard AI has analyzed the data flow and generated a secure replacement snippet that resolves the vulnerability without breaking functionality.
-                              </p>
-                              
-                              <div className="bg-[#0A0D14] rounded-lg border border-emerald-900/30 overflow-hidden relative z-10 mb-4">
-                                <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/50"></div>
-                                <div className="px-4 py-2 bg-emerald-500/5 border-b border-emerald-900/20 text-[10px] font-mono text-emerald-300/70">
-                                  Suggested Fix
+                              {finding.aiFix ? (
+                                <>
+                                  <p className="text-xs text-gray-400 leading-relaxed mb-6 relative z-10">
+                                    VibeGuard AI has analyzed the context and suggested a fix.
+                                  </p>
+                                  <div className="bg-[#0A0D14] rounded-lg border border-emerald-900/30 overflow-hidden relative z-10 mb-4">
+                                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/50"></div>
+                                    <div className="px-4 py-2 bg-emerald-500/5 border-b border-emerald-900/20 text-[10px] font-mono text-emerald-300/70">
+                                      Suggested Fix
+                                    </div>
+                                    <pre className="p-4 text-xs font-mono text-gray-300 overflow-x-auto">
+                                      <code className="text-emerald-400">
+                                        {finding.aiFix}
+                                      </code>
+                                    </pre>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="text-xs text-gray-500 italic mb-6 relative z-10">
+                                  No AI remediation available for this finding.
                                 </div>
-                                <pre className="p-4 text-xs font-mono text-gray-300 overflow-x-auto">
-                                  <code className="text-emerald-400">
-                                    {finding.aiFix || "// VibeGuard AI fix generated but hidden for preview. Click Apply to inject."}
-                                  </code>
-                                </pre>
-                              </div>
+                              )}
                               
                               <div className="flex justify-end gap-3 relative z-10">
                                 <button onClick={() => toast.info('Dismissed', { description: 'Finding marked as false positive.' })} className="px-4 py-2 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer">
                                   Dismiss
                                 </button>
-                                <button onClick={() => toast.success('Pull Request Created!', { description: 'VG-AI pushed the secure code to a new branch.' })} className="bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-2 rounded-lg text-xs font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all cursor-pointer">
+                                <button onClick={() => toast.info('Not Implemented', { description: 'Automated PR creation is planned for a future release.' })} className="bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-2 rounded-lg text-xs font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all cursor-pointer">
                                   Create Pull Request
                                 </button>
                               </div>

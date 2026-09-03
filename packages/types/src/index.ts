@@ -49,6 +49,7 @@ export interface NormalizedFinding {
   line?: number;
   column?: number;
   codeSnippet?: string;
+  fingerprint?: string;
   package?: string;
   packageVersion?: string;
   fixedVersion?: string;
