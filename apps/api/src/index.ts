@@ -2,6 +2,13 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load root .env and local .env
+dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const prisma = new PrismaClient();
 const app = express();
@@ -173,6 +180,7 @@ app.get('/api/findings', async (req: Request, res: Response) => {
     });
     res.json(findings);
   } catch (error) {
+    console.error('Error fetching findings:', error);
     res.status(500).json({ error: 'Failed to fetch findings' });
   }
 });

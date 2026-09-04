@@ -40,21 +40,39 @@ program
     try {
       // Initialize the security orchestrator and scanners
       const { Orchestrator } = require('@maverick006/security-engine');
-      const { NpmAuditScanner } = require('@maverick006/scanner-npm-audit');
-      const { TrivyScanner } = require('@maverick006/scanner-trivy');
-      const { SemgrepScanner } = require('@maverick006/scanner-semgrep');
-      const { GitleaksScanner } = require('@maverick006/scanner-gitleaks');
-      const { CheckovScanner } = require('@maverick006/scanner-checkov');
-      const { ZapScanner } = require('@maverick006/scanner-zap');
+      const scanners: any[] = [];
 
-      const orchestrator = new Orchestrator([
-        new NpmAuditScanner(),
-        new TrivyScanner(),
-        new SemgrepScanner(),
-        new GitleaksScanner(),
-        new CheckovScanner(),
-        new ZapScanner()
-      ]);
+      try {
+        const { NpmAuditScanner } = require('@maverick006/scanner-npm-audit');
+        scanners.push(new NpmAuditScanner());
+      } catch (e) {}
+
+      try {
+        const { TrivyScanner } = require('@maverick006/scanner-trivy');
+        scanners.push(new TrivyScanner());
+      } catch (e) {}
+
+      try {
+        const { SemgrepScanner } = require('@maverick006/scanner-semgrep');
+        scanners.push(new SemgrepScanner());
+      } catch (e) {}
+
+      try {
+        const { GitleaksScanner } = require('@maverick006/scanner-gitleaks');
+        scanners.push(new GitleaksScanner());
+      } catch (e) {}
+
+      try {
+        const { CheckovScanner } = require('@maverick006/scanner-checkov');
+        scanners.push(new CheckovScanner());
+      } catch (e) {}
+
+      try {
+        const { ZapScanner } = require('@maverick006/scanner-zap');
+        scanners.push(new ZapScanner());
+      } catch (e) {}
+
+      const orchestrator = new Orchestrator(scanners);
 
       const scanResult = await orchestrator.runScan({
         scanId: `scan-${Date.now()}`,

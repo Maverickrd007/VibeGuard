@@ -23,8 +23,8 @@ model Repository {
   id        String   @id @default(uuid())
   url       String
   name      String
-  ownerId   String
-  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   String?
+  owner     User?    @relation(fields: [ownerId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -39,6 +39,9 @@ model Scan {
   repositoryId String
   repository   Repository @relation(fields: [repositoryId], references: [id])
   status       String @default("QUEUED")
+  score        String?
+  numericScore Int?
+  completedAt  DateTime?
   startTime    DateTime?
   endTime      DateTime?
   createdAt    DateTime   @default(now())
@@ -82,6 +85,7 @@ model Finding {
   image          String?
   remediation    String?
   references     String?
+  fingerprint    String?
   status         String @default("OPEN")
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt

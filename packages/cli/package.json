@@ -1,6 +1,6 @@
 {
   "name": "@maverick006/vibeguard",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "VibeGuard CLI",
   "main": "dist/index.js",
   "bin": {
@@ -15,11 +15,6 @@
     "@maverick006/ai-engine": "*",
     "@maverick006/security-engine": "*",
     "@maverick006/scanner-npm-audit": "*",
-    "@maverick006/scanner-trivy": "*",
-    "@maverick006/scanner-semgrep": "*",
-    "@maverick006/scanner-gitleaks": "*",
-    "@maverick006/scanner-checkov": "*",
-    "@maverick006/scanner-zap": "*",
     "@maverick006/types": "*",
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
