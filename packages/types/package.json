@@ -8,7 +8,7 @@
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit"
   },
-  "devDependencies": {
+  "dependencies": {
     "typescript": "^5.0.0"
   }
 }
