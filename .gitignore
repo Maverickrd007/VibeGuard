@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 dist/
 build/
 .env
@@ -6,3 +6,6 @@ build/
 coverage/
 *.log
 *.tsbuildinfo
+*.db
+*.db-journal
+dev.db
