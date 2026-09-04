@@ -31,5 +31,9 @@
     "oxlint": "^1.79.0",
     "postcss": "^8.5.26",
     "typescript": "~6.0.2"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "1.2.5",
+    "@rolldown/binding-linux-x64-musl": "1.2.5"
   }
 }
