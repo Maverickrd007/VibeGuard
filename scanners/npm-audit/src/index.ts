@@ -20,9 +20,18 @@ export class NpmAuditScanner implements SecurityScanner {
       
       // Use execFile to prevent command injection
       const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-      const { stdout } = await execFileAsync(npmCmd, ['audit', '--json', '--prefix', safePath], {
-        timeout: 300000,
-        maxBuffer: 1024 * 1024 * 50
+      
+      const fs = require('fs');
+      const args = ['audit', '--json', '--prefix', safePath, '--omit=dev'];
+      
+      if (fs.existsSync(path.join(safePath, 'package-lock.json'))) {
+        args.push('--package-lock-only');
+      }
+
+      const { stdout } = await execFileAsync(npmCmd, args, {
+        timeout: 60000, // 1 minute max
+        maxBuffer: 1024 * 1024 * 50,
+        shell: process.platform === 'win32'
       });
       
       rawOutput = stdout;

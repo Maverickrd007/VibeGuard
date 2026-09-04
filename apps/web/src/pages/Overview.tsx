@@ -40,13 +40,15 @@ export function Overview() {
       .then(res => res.json())
       .then(data => {
         let c = 0, h = 0, m = 0, l = 0;
-        data.forEach((f: any) => {
-          const s = (f.severity || '').toUpperCase();
-          if (s === 'CRITICAL') c++;
-          else if (s === 'HIGH') h++;
-          else if (s === 'MEDIUM') m++;
-          else l++;
-        });
+        if (Array.isArray(data)) {
+          data.forEach((f: any) => {
+            const s = (f.severity || '').toUpperCase();
+            if (s === 'CRITICAL') c++;
+            else if (s === 'HIGH') h++;
+            else if (s === 'MEDIUM') m++;
+            else l++;
+          });
+        }
         setStats(prev => ({ ...prev, critical: c, high: h, medium: m, low: l }));
         
         // Simple grouped data for the chart by date

@@ -1,9 +1,10 @@
 generator client {
   provider = "prisma-client-js"
+  engineType = "binary"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -31,19 +32,13 @@ model Repository {
   applications Application[]
 }
 
-enum ScanStatus {
-  QUEUED
-  RUNNING
-  COMPLETED
-  FAILED
-  CANCELLED
-}
+
 
 model Scan {
   id           String     @id @default(uuid())
   repositoryId String
   repository   Repository @relation(fields: [repositoryId], references: [id])
-  status       ScanStatus @default(QUEUED)
+  status       String @default("QUEUED")
   startTime    DateTime?
   endTime      DateTime?
   createdAt    DateTime   @default(now())
@@ -56,26 +51,11 @@ model Scan {
   applications  Application[]
 }
 
-enum Severity {
-  CRITICAL
-  HIGH
-  MEDIUM
-  LOW
-  INFO
-}
 
-enum Confidence {
-  HIGH
-  MEDIUM
-  LOW
-}
 
-enum FindingStatus {
-  OPEN
-  ACKNOWLEDGED
-  FIXED
-  FALSE_POSITIVE
-}
+
+
+
 
 model Finding {
   id             String        @id @default(uuid())
@@ -86,8 +66,8 @@ model Finding {
   ruleId         String?
   title          String
   description    String
-  severity       Severity
-  confidence     Confidence?
+  severity       String
+  confidence     String?
   category       String?
   owasp          String?
   cwe            String?
@@ -102,7 +82,7 @@ model Finding {
   image          String?
   remediation    String?
   references     String?
-  status         FindingStatus @default(OPEN)
+  status         String @default("OPEN")
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -181,3 +161,4 @@ model CIResult {
   failureReason String?
   createdAt     DateTime @default(now())
 }
+

@@ -10,7 +10,7 @@ export function Findings() {
   useEffect(() => {
     fetchApi('/api/findings')
       .then(res => res.json())
-      .then(data => setFindings(data))
+      .then(data => setFindings(Array.isArray(data) ? data : []))
       .catch(console.error);
   }, []);
 
