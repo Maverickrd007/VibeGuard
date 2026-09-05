@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name('vibeguard')
   .description('AI-Powered DevSecOps Orchestrator CLI')
-  .version('1.0.2');
+  .version('1.0.10');
 
 program
   .command('scan [path]')
@@ -157,8 +157,11 @@ program
     }).start();
 
     try {
-      const API_URL = process.env.VIBEGUARD_API_URL || 'http://localhost:3001';
+      const API_URL = process.env.VIBEGUARD_API_URL || 'https://vibeguard-eep3.onrender.com';
       const API_KEY = process.env.VIBEGUARD_API_KEY || 'dev-api-key-123';
+      const repoName = gitInfo.name || 'Local Project';
+      const repoUrl = (gitInfo as any).remoteUrl || gitInfo.name || 'local';
+
       const response = await fetch(`${API_URL}/api/scans/upload`, {
         method: 'POST',
         headers: { 
@@ -166,8 +169,8 @@ program
           'Authorization': `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
-          repositoryName: gitInfo.name || 'Local Project',
-          repositoryUrl: gitInfo.name || 'local',
+          repositoryName: repoName,
+          repositoryUrl: repoUrl,
           numericScore: stats.score,
           score: stats.riskLevel,
           findings: findings
@@ -175,12 +178,13 @@ program
       });
       
       if (response.ok) {
-        syncSpinner.succeed(chalk.dim('Results synced to dashboard.'));
+        const dashboardUrl = `https://vibeguard-web-eight.vercel.app/dashboard?repo=${encodeURIComponent(repoName)}`;
+        syncSpinner.succeed(chalk.green(`Results synced to dashboard: ${chalk.cyan.underline(dashboardUrl)}`));
       } else {
-        syncSpinner.fail(chalk.dim('Failed to sync results to dashboard.'));
+        syncSpinner.fail(chalk.red(`Failed to sync results to dashboard (${response.status} ${response.statusText}).`));
       }
     } catch (e) {
-      syncSpinner.warn(chalk.dim('Dashboard API unreachable. Skipping sync.'));
+      syncSpinner.warn(chalk.yellow('Dashboard API unreachable. Skipping sync.'));
     }
 
     // Exit codes

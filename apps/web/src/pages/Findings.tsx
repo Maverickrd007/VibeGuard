@@ -1,9 +1,11 @@
 import { fetchApi } from '../config';
+import { useRepo } from '../context/RepoContext';
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, ShieldAlert, Cpu, CheckCircle2, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function Findings() {
+  const { selectedRepo } = useRepo();
   const [findings, setFindings] = useState<any[]>([]);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
@@ -13,6 +15,11 @@ export function Findings() {
       .then(data => setFindings(Array.isArray(data) ? data : []))
       .catch(console.error);
   }, []);
+
+  const filteredFindings = findings.filter(f => {
+    if (selectedRepo === 'all') return true;
+    return f.scan?.repository?.name === selectedRepo;
+  });
 
   const toggleRow = (id: string) => {
     setExpandedRow(expandedRow === id ? null : id);
@@ -40,7 +47,11 @@ export function Findings() {
           </div>
           <div>
             <h3 className="text-base font-bold text-white tracking-wide">Security Audit Audit</h3>
-            <p className="text-xs text-gray-400 mt-0.5">Comprehensive vulnerability analysis and remediation telemetry.</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {selectedRepo === 'all'
+                ? 'Comprehensive vulnerability analysis and remediation telemetry.'
+                : `Comprehensive vulnerability analysis for repository "${selectedRepo}".`}
+            </p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -67,15 +78,15 @@ export function Findings() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800/40 bg-[#0B0D14]/40">
-            {findings.length === 0 ? (
+            {filteredFindings.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500 text-sm">
                   <ShieldAlert className="h-8 w-8 mx-auto mb-3 opacity-20" />
-                  No vulnerabilities found. Your code is secure!
+                  No vulnerabilities found for this repository.
                 </td>
               </tr>
             ) : (
-              findings.map((finding) => (
+              filteredFindings.map((finding) => (
                 <React.Fragment key={finding.id}>
                   <tr 
                     onClick={() => toggleRow(finding.id)}

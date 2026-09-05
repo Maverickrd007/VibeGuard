@@ -1,84 +1,98 @@
 import { fetchApi } from '../config';
-import { ShieldAlert, CheckCircle, AlertTriangle, Activity, Terminal, ExternalLink } from 'lucide-react';
+import { useRepo } from '../context/RepoContext';
+import { ShieldAlert, CheckCircle, AlertTriangle, Activity, Terminal, ExternalLink, FolderGit2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { NavLink } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 export function Overview() {
+  const { selectedRepo, setSelectedRepo } = useRepo();
   const [scans, setScans] = useState<any[]>([]);
-  const [stats, setStats] = useState({
-    critical: 0,
-    high: 0,
-    medium: 0,
-    low: 0,
-    totalScans: 0,
-    grade: 'A',
-    score: 100,
-  });
-
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [findings, setFindings] = useState<any[]>([]);
 
   useEffect(() => {
     fetchApi('/api/scans')
       .then(res => res.json())
-      .then(data => {
-        setScans(data);
-        setStats(prev => ({ ...prev, totalScans: data.length }));
-        
-        if (data.length > 0) {
-          const latest = data[0];
-          setStats(prev => ({
-            ...prev,
-            grade: latest.score || 'A',
-            score: latest.numericScore || 100,
-          }));
-        }
-      })
+      .then(data => setScans(Array.isArray(data) ? data : []))
       .catch(console.error);
 
     fetchApi('/api/findings')
       .then(res => res.json())
-      .then(data => {
-        let c = 0, h = 0, m = 0, l = 0;
-        if (Array.isArray(data)) {
-          data.forEach((f: any) => {
-            const s = (f.severity || '').toUpperCase();
-            if (s === 'CRITICAL') c++;
-            else if (s === 'HIGH') h++;
-            else if (s === 'MEDIUM') m++;
-            else l++;
-          });
-        }
-        setStats(prev => ({ ...prev, critical: c, high: h, medium: m, low: l }));
-        
-        // Simple grouped data for the chart by date
-        const grouped = data.reduce((acc: any, f: any) => {
-          const date = new Date(f.createdAt).toLocaleDateString('en-US', { weekday: 'short' });
-          if (!acc[date]) acc[date] = { name: date, critical: 0, high: 0, medium: 0, low: 0 };
-          const s = (f.severity || '').toUpperCase();
-          if (s === 'CRITICAL') acc[date].critical++;
-          else if (s === 'HIGH') acc[date].high++;
-          else if (s === 'MEDIUM') acc[date].medium++;
-          else acc[date].low++;
-          return acc;
-        }, {});
-        
-        const cData = Object.values(grouped);
-        // If empty, provide some dummy trends
-        if (cData.length === 0) {
-          setChartData([
-            { name: 'Mon', critical: 0, high: 0, medium: 0, low: 0 },
-            { name: 'Tue', critical: 0, high: 0, medium: 0, low: 0 },
-          ]);
-        } else {
-          setChartData(cData);
-        }
-      })
+      .then(data => setFindings(Array.isArray(data) ? data : []))
       .catch(console.error);
   }, []);
 
+  const filteredScans = useMemo(() => {
+    if (selectedRepo === 'all') return scans;
+    return scans.filter(s => s.repository?.name === selectedRepo);
+  }, [scans, selectedRepo]);
+
+  const filteredFindings = useMemo(() => {
+    if (selectedRepo === 'all') return findings;
+    return findings.filter(f => f.scan?.repository?.name === selectedRepo);
+  }, [findings, selectedRepo]);
+
+  const stats = useMemo(() => {
+    let c = 0, h = 0, m = 0, l = 0;
+    filteredFindings.forEach((f: any) => {
+      const s = (f.severity || '').toUpperCase();
+      if (s === 'CRITICAL') c++;
+      else if (s === 'HIGH') h++;
+      else if (s === 'MEDIUM') m++;
+      else l++;
+    });
+
+    const latest = filteredScans[0];
+    return {
+      critical: c,
+      high: h,
+      medium: m,
+      low: l,
+      totalScans: filteredScans.length,
+      grade: latest?.score || 'A',
+      score: latest?.numericScore ?? (c === 0 && h === 0 ? 100 : Math.max(20, 100 - c * 25 - h * 10))
+    };
+  }, [filteredFindings, filteredScans]);
+
+  const chartData = useMemo(() => {
+    const grouped = filteredFindings.reduce((acc: any, f: any) => {
+      const date = new Date(f.createdAt).toLocaleDateString('en-US', { weekday: 'short' });
+      if (!acc[date]) acc[date] = { name: date, critical: 0, high: 0, medium: 0, low: 0 };
+      const s = (f.severity || '').toUpperCase();
+      if (s === 'CRITICAL') acc[date].critical++;
+      else if (s === 'HIGH') acc[date].high++;
+      else if (s === 'MEDIUM') acc[date].medium++;
+      else acc[date].low++;
+      return acc;
+    }, {});
+
+    const cData = Object.values(grouped);
+    if (cData.length === 0) {
+      return [
+        { name: 'Mon', critical: 0, high: 0, medium: 0, low: 0 },
+        { name: 'Tue', critical: 0, high: 0, medium: 0, low: 0 },
+      ];
+    }
+    return cData;
+  }, [filteredFindings]);
+
   return (
     <div className="space-y-8">
+      {/* Active Repository Indicator */}
+      {selectedRepo !== 'all' && (
+        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-5 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-cyan-300">
+            <FolderGit2 className="h-4 w-4 text-cyan-400" />
+            <span>Filtering metrics for repository: <strong className="text-white font-semibold">{selectedRepo}</strong></span>
+          </div>
+          <button
+            onClick={() => setSelectedRepo('all')}
+            className="text-xs text-cyan-400 hover:text-white underline cursor-pointer"
+          >
+            Show All Repositories
+          </button>
+        </div>
+      )}
       {/* Header Stats */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {/* Security Score */}

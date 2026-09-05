@@ -43,6 +43,7 @@ export function getGitInfo(cwd: string = process.cwd()) {
   let name = path.basename(cwd);
   let branch = 'main';
   let commit = '4f2c1ab';
+  let remoteUrl = '';
 
   try {
     const branchOut = execSync('git rev-parse --abbrev-ref HEAD', { cwd, stdio: ['pipe', 'pipe', 'ignore'] }).toString().trim();
@@ -55,14 +56,15 @@ export function getGitInfo(cwd: string = process.cwd()) {
   } catch {}
 
   try {
-    const remoteUrl = execSync('git config --get remote.origin.url', { cwd, stdio: ['pipe', 'pipe', 'ignore'] }).toString().trim();
-    if (remoteUrl) {
-      const match = remoteUrl.match(/\/([^/]+?)(\.git)?$/);
+    const gitRemote = execSync('git config --get remote.origin.url', { cwd, stdio: ['pipe', 'pipe', 'ignore'] }).toString().trim();
+    if (gitRemote) {
+      remoteUrl = gitRemote;
+      const match = gitRemote.match(/\/([^/]+?)(\.git)?$/);
       if (match && match[1]) name = match[1];
     }
   } catch {}
 
-  return { name, branch, commit, policy: 'enterprise' };
+  return { name, branch, commit, remoteUrl, policy: 'enterprise' };
 }
 
 export function calculateScore(findings: NormalizedFinding[]): ScanStats {

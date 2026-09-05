@@ -15,6 +15,8 @@ import { Settings } from './pages/Settings';
 import { Placeholder } from './pages/Placeholder';
 import { Toaster } from 'sonner';
 
+import { RepoProvider } from './context/RepoContext';
+
 function App() {
   return (
     <Router>
@@ -27,22 +29,24 @@ function App() {
         <Route
           path="/*"
           element={
-            <Layout>
-              <Routes>
-                <Route path="/dashboard" element={<Overview />} />
-                <Route path="/overview" element={<Overview />} />
-                <Route path="/findings" element={<Findings />} />
-                <Route path="/repositories" element={<Repositories />} />
-                <Route path="/scans" element={<Scans />} />
-                <Route path="/dependencies" element={<Dependencies />} />
-                <Route path="/secrets" element={<Secrets />} />
-                <Route path="/containers" element={<Containers />} />
-                <Route path="/iac" element={<IaC />} />
-                <Route path="/experiments" element={<Experiments />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/settings" element={<Settings />} />
-              </Routes>
-            </Layout>
+            <RepoProvider>
+              <Layout>
+                <Routes>
+                  <Route path="/dashboard" element={<Overview />} />
+                  <Route path="/overview" element={<Overview />} />
+                  <Route path="/findings" element={<Findings />} />
+                  <Route path="/repositories" element={<Repositories />} />
+                  <Route path="/scans" element={<Scans />} />
+                  <Route path="/dependencies" element={<Dependencies />} />
+                  <Route path="/secrets" element={<Secrets />} />
+                  <Route path="/containers" element={<Containers />} />
+                  <Route path="/iac" element={<IaC />} />
+                  <Route path="/experiments" element={<Experiments />} />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Routes>
+              </Layout>
+            </RepoProvider>
           }
         />
       </Routes>

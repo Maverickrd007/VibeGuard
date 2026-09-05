@@ -2,11 +2,14 @@ import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, FolderGit2, Activity, ShieldAlert, PackageSearch, KeyRound, Box, FileCode2, TestTube2, FileText, Settings } from 'lucide-react';
 
+import { useRepo } from '../context/RepoContext';
+
 interface LayoutProps {
   children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
+  const { repositories, selectedRepo, setSelectedRepo } = useRepo();
   const navItems = [
     { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Repositories', path: '/repositories', icon: FolderGit2 },
@@ -55,11 +58,29 @@ export function Layout({ children }: LayoutProps) {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#07080C]">
         {/* Topbar */}
         <header className="h-16 bg-[#0B0D14]/80 backdrop-blur-md border-b border-gray-800/70 flex items-center justify-between px-8">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-white tracking-wide">Security Dashboard</h2>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+          <div className="flex items-center gap-4">
+            <h2 className="text-lg font-semibold text-white tracking-wide hidden sm:block">Security Dashboard</h2>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hidden md:inline-block">
               Live Monitoring
             </span>
+
+            {/* Repository Filter Selector */}
+            <div className="flex items-center gap-2 bg-[#121622] border border-gray-700/60 rounded-lg px-3 py-1.5 shadow-inner">
+              <FolderGit2 className="h-4 w-4 text-cyan-400" />
+              <span className="text-xs text-gray-400 font-medium hidden lg:inline">Repository:</span>
+              <select
+                value={selectedRepo}
+                onChange={(e) => setSelectedRepo(e.target.value)}
+                className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer pr-1"
+              >
+                <option value="all" className="bg-[#0B0D14] text-white">All Repositories</option>
+                {repositories.map((repo) => (
+                  <option key={repo.id} value={repo.name} className="bg-[#0B0D14] text-white">
+                    {repo.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="flex items-center space-x-4">
             <NavLink to="/" className="text-xs text-gray-400 hover:text-white transition-colors">

@@ -106,7 +106,7 @@ app.get('/api/repositories', async (req: Request, res: Response) => {
 app.get('/api/scans', async (req: Request, res: Response) => {
   try {
     const scans = await prisma.scan.findMany({
-      include: { findings: true },
+      include: { findings: true, repository: true },
       orderBy: { createdAt: 'desc' }
     });
     res.json(scans);
@@ -120,15 +120,23 @@ app.post('/api/scans/upload', async (req: Request, res: Response) => {
     const { repositoryName, repositoryUrl, numericScore, score, findings } = req.body;
     
     // Find or create repository
+    const targetName = repositoryName || 'Local Project';
+    const targetUrl = (repositoryUrl && repositoryUrl !== 'local') ? repositoryUrl : `local://${targetName}`;
+
     let repository = await prisma.repository.findFirst({
-      where: { url: repositoryUrl || 'local' }
+      where: {
+        OR: [
+          { name: targetName },
+          { url: targetUrl }
+        ]
+      }
     });
     
     if (!repository) {
       repository = await prisma.repository.create({
         data: {
-          name: repositoryName || 'Local Project',
-          url: repositoryUrl || 'local'
+          name: targetName,
+          url: targetUrl
         }
       });
     }
@@ -161,7 +169,7 @@ app.post('/api/scans/upload', async (req: Request, res: Response) => {
           })
         }
       },
-      include: { findings: true }
+      include: { findings: true, repository: true }
     });
     
     res.status(201).json(scan);
@@ -176,7 +184,7 @@ app.get('/api/findings', async (req: Request, res: Response) => {
   try {
     const findings = await prisma.finding.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { scan: true }
+      include: { scan: { include: { repository: true } } }
     });
     res.json(findings);
   } catch (error) {
